@@ -17,7 +17,7 @@ install: venv
 dev: server frontend
 
 server:
-	source .venv/bin/activate && uvicorn api.main:app --reload
+	source .venv/bin/activate && uvicorn api.main:app --reload --timeout-keep-alive 0
 
 frontend:
 	cd frontend && npm run dev

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import copy
+import traceback
 
 from api.utils.forecast import get_dataframe, GROWFACTORS, FORECAST_YEARS, START_YEAR
 
@@ -28,9 +29,15 @@ class YearlyMetric(BaseModel):
     year: int
     value: float
 
+class DecileYearlyChange(BaseModel):
+    decile: int
+    year: int
+    change: float
+
 class ForecastResponse(BaseModel):
     median_income_by_year: List[YearlyMetric]
     poverty_rate_by_year: List[YearlyMetric]
+    decile_yearly_changes: List[DecileYearlyChange]
     metadata: Dict[str, Any]
 
 @router.get("/")
@@ -38,7 +45,7 @@ async def get_available_forecasts():
     """Get list of available OBR forecasts"""
     return {
         "forecasts": [
-            {"id": "spring_2025", "name": "Spring 2025", "date": "2025-03-27"}
+            {"id": "spring_2025", "name": "Autumn 2024", "date": "2024-10-30"}
         ],
         "forecast_years": FORECAST_YEARS,
         "default_growth_rates": GROWFACTORS,
@@ -59,17 +66,19 @@ async def calculate_forecast_impact(request: ForecastRequest):
             }
         
         # Get the dataframe with simulation results
-        df = get_dataframe(growth_rates, subsample=10_000)  # Using smaller subsample for faster API responses
+        # Use a smaller subsample to improve API response time
+        df = get_dataframe(growth_rates)
         
         # Calculate median income by year
         median_income_by_year = []
         poverty_rate_by_year = []
+        decile_yearly_changes = []
         
         # Include 2025 as baseline
         for year in range(2025, START_YEAR + len(FORECAST_YEARS)):
             # Calculate median income
             year_df = df[df.year == year]
-            median_income = year_df.household_net_income.median()
+            median_income = year_df.real_household_net_income.median()
             
             median_income_by_year.append({
                 "year": int(year),
@@ -85,15 +94,33 @@ async def calculate_forecast_impact(request: ForecastRequest):
                 "year": int(year),
                 "value": poverty_rate
             })
+            
+            
+            # Calculate YoY percent changes if we have previous year data
+            if year > 2025:
+                year_df = df[df.year == year]
+                last_year_df = df[df.year == year - 1]
+                year_df["last_year_income_decile"] = last_year_df.household_income_decile.values
+                for decile in range(1, 11):
+                    previous_income = last_year_df[last_year_df.household_income_decile == decile].real_household_net_income.sum()
+                    current_income = year_df[year_df.last_year_income_decile == decile].real_household_net_income.sum()
+                    percent_change = (current_income - previous_income) / previous_income
+                    
+                    decile_yearly_changes.append({
+                        "decile": decile,
+                        "year": int(year),
+                        "change": float(percent_change)
+                    })
         
         return {
             "median_income_by_year": median_income_by_year,
             "poverty_rate_by_year": poverty_rate_by_year,
+            "decile_yearly_changes": decile_yearly_changes,
             "metadata": {
                 "forecast_id": request.forecast_id,
                 "growth_rates": growth_rates
             }
         }
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

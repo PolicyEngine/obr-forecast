@@ -5,6 +5,7 @@ import Head from 'next/head';
 import { ForecastSelector } from '../components/ForecastSelector';
 import { ForecastResults } from '../components/ForecastResults';
 import { GrowthRatesInput } from '../components/GrowthRatesInput';
+import { DecileYearlyChangeChart } from '../components/DecileYearlyChangeChart';
 
 // Types
 type GrowthRateType = 'earned_income' | 'mixed_income' | 'capital_income' | 'inflation';
@@ -17,9 +18,16 @@ interface YearlyMetric {
   value: number;
 }
 
+interface DecileYearlyChange {
+  decile: number;
+  year: number;
+  change: number;
+}
+
 interface ForecastResponse {
   median_income_by_year: YearlyMetric[];
   poverty_rate_by_year: YearlyMetric[];
+  decile_yearly_changes: DecileYearlyChange[];
   metadata: {
     forecast_id: string;
     growth_rates: GrowthRates;
@@ -86,6 +94,8 @@ const Home: NextPage = () => {
       const response = await axios.post<ForecastResponse>('/api/forecasts/impact', {
         forecast_id: forecastType === 'actual' ? selectedForecast : 'custom',
         growth_rates: forecastType === 'custom' ? customGrowthRates : undefined,
+      }, {
+        timeout: 300000, // 5 minutes timeout
       });
 
       setForecastResults(response.data);
@@ -190,11 +200,20 @@ const Home: NextPage = () => {
             )}
             
             {!isLoading && !error && forecastResults && (
-              <ForecastResults
-                medianIncomeByYear={forecastResults.median_income_by_year}
-                povertyRateByYear={forecastResults.poverty_rate_by_year}
-                isLoading={isLoading}
-              />
+              <div className="space-y-6 fade-in" style={{ animationDelay: '300ms' }}>
+                {/* Show the decile yearly change chart first */}
+                <DecileYearlyChangeChart
+                  decileYearlyChanges={forecastResults.decile_yearly_changes}
+                  isLoading={isLoading}
+                />
+
+                {/* Then show the other charts */}
+                <ForecastResults
+                  medianIncomeByYear={forecastResults.median_income_by_year}
+                  povertyRateByYear={forecastResults.poverty_rate_by_year}
+                  isLoading={isLoading}
+                />
+              </div>
             )}
           </div>
         </div>
