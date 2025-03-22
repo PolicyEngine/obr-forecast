@@ -94,17 +94,17 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-        <header className="text-center mb-4" style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-            OBR Forecast Impact Estimator
-          </h1>
-          <p className="text-muted" style={{ fontSize: '1.25rem' }}>
+      <header className="site-header">
+        <div className="container">
+          <h1 className="header-title slide-in">OBR Forecast Impact Estimator</h1>
+          <p className="header-description slide-in" style={{ animationDelay: '100ms' }}>
             Analyze the impact of Office for Budget Responsibility forecasts using PolicyEngine
           </p>
-        </header>
-        
-        <div className="grid grid-cols-4" style={{ gap: '1.5rem' }}>
+        </div>
+      </header>
+
+      <main className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <div className="grid grid-cols-4" style={{ gap: '2rem' }}>
           <div className="space-y-6">
             <ForecastSelector 
               onSelectForecast={setSelectedForecast}
@@ -113,7 +113,7 @@ const Home: NextPage = () => {
               forecastType={forecastType}
             />
             
-            <div className="card">
+            <div className="card slide-in" style={{ animationDelay: '200ms' }}>
               <button 
                 className="btn btn-lg btn-block"
                 onClick={handleAnalyze}
@@ -134,10 +134,10 @@ const Home: NextPage = () => {
             )}
             
             {isLoading && (
-              <div className="flex items-center justify-center" style={{ height: '300px' }}>
+              <div className="card flex items-center justify-center slide-in" style={{ minHeight: '300px' }}>
                 <div className="text-center">
-                  <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
-                  <p>Running simulation with PolicyEngine...</p>
+                  <div className="spinner" style={{ margin: '0 auto 1.5rem', width: '3rem', height: '3rem' }}></div>
+                  <p style={{ fontFamily: 'Roboto, sans-serif', marginBottom: '0.5rem' }}>Running simulation with PolicyEngine...</p>
                   <p className="text-muted" style={{ fontSize: '0.875rem' }}>
                     This may take a minute or two to complete
                   </p>
@@ -154,13 +154,13 @@ const Home: NextPage = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
       
-      <footer style={{ borderTop: '1px solid #eaeaea', padding: '1rem 0' }}>
+      <footer className="site-footer">
         <div className="container">
-          <p className="text-muted text-center" style={{ fontSize: '0.875rem' }}>
-            Built with <a href="https://policyengine.org" style={{ textDecoration: 'underline' }}>PolicyEngine</a>. 
-            Economic forecasts from the <a href="https://obr.uk" style={{ textDecoration: 'underline' }}>Office for Budget Responsibility</a>.
+          <p style={{ textAlign: 'center', fontSize: '0.9rem' }}>
+            Built with <a href="https://policyengine.org">PolicyEngine</a> | 
+            Economic forecasts from the <a href="https://obr.uk">Office for Budget Responsibility</a>
           </p>
         </div>
       </footer>

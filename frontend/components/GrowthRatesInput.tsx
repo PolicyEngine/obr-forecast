@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import * as Slider from '@radix-ui/react-slider';
+import { useState, useEffect, useRef } from 'react';
 
 type GrowthRateType = 'earned_income' | 'mixed_income' | 'capital_income' | 'inflation';
 
@@ -32,6 +31,12 @@ export const GrowthRatesInput = ({
   onChange,
 }: GrowthRatesInputProps) => {
   const [growthRates, setGrowthRates] = useState<GrowthRates>(defaultGrowthRates);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  
+  // Initialize the refs array with the correct length
+  useEffect(() => {
+    cardsRef.current = cardsRef.current.slice(0, Object.keys(GROWTH_RATE_LABELS).length);
+  }, []);
 
   // Update parent component when growth rates change
   useEffect(() => {
@@ -52,13 +57,17 @@ export const GrowthRatesInput = ({
     }));
   };
 
-  // Format percentage display
-  const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`;
-
   return (
     <div className="space-y-6">
-      {Object.entries(GROWTH_RATE_LABELS).map(([type, label]) => (
-        <div key={type} className="card">
+      {Object.entries(GROWTH_RATE_LABELS).map(([type, label], index) => (
+        <div 
+          key={type} 
+          className="card slide-in" 
+          ref={el => cardsRef.current[index] = el}
+          style={{ 
+            animationDelay: `${index * 100}ms` 
+          }}
+        >
           <h3 className="card-title">{label}</h3>
           <p className="card-description">{GROWTH_RATE_DESCRIPTIONS[type as GrowthRateType]}</p>
           
@@ -74,7 +83,12 @@ export const GrowthRatesInput = ({
                   alignItems: 'center' 
                 }}>
                   <div>
-                    <label className="form-label text-center">{year}</label>
+                    <span className="form-label text-center" style={{ 
+                      display: 'block',
+                      fontFamily: 'Roboto Mono, monospace'
+                    }}>
+                      {year}
+                    </span>
                   </div>
                   
                   <div style={{ padding: '0 10px' }}>
@@ -116,7 +130,10 @@ export const GrowthRatesInput = ({
                         className="form-control"
                         style={{ width: '70px' }}
                       />
-                      <span>%</span>
+                      <span style={{ 
+                        fontFamily: 'Roboto Mono, monospace', 
+                        color: 'var(--blue)'
+                      }}>%</span>
                     </div>
                   </div>
                 </div>

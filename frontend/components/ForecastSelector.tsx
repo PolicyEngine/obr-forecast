@@ -46,7 +46,7 @@ export const ForecastSelector = ({
   }, [onSelectForecast, selectedForecast]);
 
   return (
-    <div className="card">
+    <div className="card slide-in">
       <h3 className="card-title">Forecast Scenarios</h3>
       <p className="card-description">
         Select an official OBR forecast or create your own custom scenario
@@ -57,30 +57,22 @@ export const ForecastSelector = ({
         value={forecastType}
         onValueChange={(value) => onForecastTypeChange(value as ForecastType)}
       >
-        <Tabs.List className="flex border-b mb-4" style={{ marginBottom: '1rem' }}>
+        <Tabs.List className="tabs-list">
           <Tabs.Trigger 
             value="actual"
-            className="flex-1 py-2 px-4 border-b-2 text-center"
-            style={{ 
-              borderBottomColor: forecastType === 'actual' ? '#0070f3' : 'transparent',
-              fontWeight: forecastType === 'actual' ? 'bold' : 'normal',
-            }}
+            className="tab-trigger"
           >
             Official Forecasts
           </Tabs.Trigger>
           <Tabs.Trigger 
             value="custom"
-            className="flex-1 py-2 px-4 border-b-2 text-center"
-            style={{ 
-              borderBottomColor: forecastType === 'custom' ? '#0070f3' : 'transparent',
-              fontWeight: forecastType === 'custom' ? 'bold' : 'normal',
-            }}
+            className="tab-trigger"
           >
             Custom Scenario
           </Tabs.Trigger>
         </Tabs.List>
         
-        <Tabs.Content value="actual" className="space-y-6">
+        <Tabs.Content value="actual" className="space-y-6 fade-in">
           <div className="form-group">
             <label htmlFor="forecast-select" className="form-label">Select OBR Forecast</label>
             <select
@@ -100,7 +92,7 @@ export const ForecastSelector = ({
           </div>
         </Tabs.Content>
         
-        <Tabs.Content value="custom" className="space-y-6">
+        <Tabs.Content value="custom" className="space-y-6 fade-in">
           <div className="form-group">
             <label className="form-label">Custom Forecast Scenario</label>
             <p className="text-muted">
