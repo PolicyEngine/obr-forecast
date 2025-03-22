@@ -30,6 +30,7 @@ export const ForecastSelector = ({
     const fetchForecasts = async () => {
       setLoading(true);
       try {
+        // Use environment-aware API URL
         const response = await axios.get('/api/forecasts');
         setForecasts(response.data.forecasts);
         if (response.data.forecasts.length > 0 && !selectedForecast) {
@@ -56,8 +57,10 @@ export const ForecastSelector = ({
         defaultValue="actual" 
         value={forecastType}
         onValueChange={(value) => onForecastTypeChange(value as ForecastType)}
+        className="tabs-root"
+        data-state={forecastType}
       >
-        <Tabs.List className="tabs-list">
+        <Tabs.List className="tabs-list" data-orientation="horizontal" data-state={forecastType}>
           <Tabs.Trigger 
             value="actual"
             className="tab-trigger"
@@ -72,7 +75,7 @@ export const ForecastSelector = ({
           </Tabs.Trigger>
         </Tabs.List>
         
-        <Tabs.Content value="actual" className="space-y-6 fade-in">
+        <Tabs.Content value="actual" className="tab-content space-y-6">
           <div className="form-group">
             <label htmlFor="forecast-select" className="form-label">Select OBR Forecast</label>
             <select
@@ -92,7 +95,7 @@ export const ForecastSelector = ({
           </div>
         </Tabs.Content>
         
-        <Tabs.Content value="custom" className="space-y-6 fade-in">
+        <Tabs.Content value="custom" className="tab-content space-y-6">
           <div className="form-group">
             <label className="form-label">Custom Forecast Scenario</label>
             <p className="text-muted">

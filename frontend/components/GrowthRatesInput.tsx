@@ -58,14 +58,14 @@ export const GrowthRatesInput = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 growth-rates-container">
       {Object.entries(GROWTH_RATE_LABELS).map(([type, label], index) => (
         <div 
           key={type} 
           className="card slide-in" 
           ref={el => cardsRef.current[index] = el}
           style={{ 
-            animationDelay: `${index * 100}ms` 
+            animationDelay: `${index * 100}ms`
           }}
         >
           <h3 className="card-title">{label}</h3>

@@ -38,52 +38,73 @@ export const ForecastResults = ({
   povertyRateByYear,
   isLoading,
 }: ForecastResultsProps) => {
-  // Calculate change from baseline (2025)
+  // Calculate baseline values (2025)
   const baselineYear = medianIncomeByYear.length > 0 ? medianIncomeByYear[0].year : 0;
   const baselineMedianIncome = medianIncomeByYear.length > 0 ? medianIncomeByYear[0].value : 0;
   const baselinePovertyRate = povertyRateByYear.length > 0 ? povertyRateByYear[0].value : 0;
 
-  const medianIncomeWithChange = medianIncomeByYear.map(data => ({
-    ...data,
-    changeFromBaseline: ((data.value - baselineMedianIncome) / baselineMedianIncome) * 100,
-  }));
-
-  const povertyRateWithChange = povertyRateByYear.map(data => ({
-    ...data,
-    changeInPctPoints: (data.value - baselinePovertyRate) * 100,
-  }));
-
   // Custom Tooltip component for charts
-  const CustomTooltip = ({ active, payload, label, formatter }: any) => {
+  const CustomTooltip = ({ active, payload, label, formatter, baselineValue, baselineYear }: any) => {
     if (active && payload && payload.length) {
+      // Calculate change from baseline
+      const currentValue = payload[0].value;
+      const isBaseline = label === baselineYear;
+      
+      // Calculate percentage change for income or percentage point change for poverty
+      let changeValue, changeLabel;
+      if (formatter === formatCurrency) {
+        // For income, calculate percentage change
+        changeValue = isBaseline ? 0 : ((currentValue - baselineValue) / baselineValue) * 100;
+        changeLabel = "Change from baseline";
+        changeValue = `${changeValue.toFixed(1)}%`;
+      } else {
+        // For poverty rate, calculate percentage point change
+        changeValue = isBaseline ? 0 : (currentValue - baselineValue) * 100;
+        changeLabel = "Change from baseline";
+        changeValue = `${changeValue.toFixed(1)} pp`;
+      }
+
       return (
         <div style={{ 
           backgroundColor: 'var(--white)', 
-          padding: '10px', 
+          padding: '10px 16px', 
           border: '1px solid var(--medium-dark-gray)',
           borderRadius: '4px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
           fontFamily: 'Roboto, sans-serif',
+          minWidth: '180px',
         }}>
           <p style={{ 
-            margin: '0 0 5px',
+            margin: '0 0 8px',
             fontWeight: 'bold',
             fontFamily: 'Roboto Mono, monospace',
+            borderBottom: '1px solid var(--light-gray)',
+            paddingBottom: '4px',
           }}>{`Year: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={`item-${index}`} style={{ 
-              margin: '2px 0',
-              color: entry.color,
+          
+          <p style={{ 
+            margin: '3px 0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '12px',
+            color: payload[0].color,
+          }}>
+            <span>Value:</span>
+            <span style={{ fontWeight: 'bold' }}>{formatter(currentValue)}</span>
+          </p>
+          
+          {!isBaseline && (
+            <p style={{ 
+              margin: '3px 0',
               display: 'flex',
               justifyContent: 'space-between',
               gap: '12px',
+              color: 'var(--teal-accent)',
             }}>
-              <span>{entry.name}:</span>
-              <span style={{ fontWeight: 'bold' }}>{
-                formatter ? formatter(entry.value, entry.name) : entry.value
-              }</span>
+              <span>{changeLabel}:</span>
+              <span style={{ fontWeight: 'bold' }}>{changeValue}</span>
             </p>
-          ))}
+          )}
         </div>
       );
     }
@@ -98,7 +119,7 @@ export const ForecastResults = ({
         
         <div style={{ height: '300px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={medianIncomeWithChange} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+            <LineChart data={medianIncomeByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
               <XAxis 
                 dataKey="year" 
@@ -106,40 +127,34 @@ export const ForecastResults = ({
                 tick={{ fontFamily: 'Roboto Mono, monospace' }} 
               />
               <YAxis 
-                yAxisId="left" 
                 orientation="left" 
                 tickFormatter={formatCurrency} 
                 stroke="var(--blue)"
                 tick={{ fontFamily: 'Roboto Mono, monospace' }}
                 tickMargin={5}
               />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                tickFormatter={(value) => `${value.toFixed(1)}%`} 
-                stroke="var(--teal-accent)"
-                tick={{ fontFamily: 'Roboto Mono, monospace' }}
-                tickMargin={5}
-              />
               <Tooltip 
-                content={<CustomTooltip 
-                  formatter={(value: any, name: string) => {
-                    if (name === 'Median Income') return formatCurrency(value);
-                    if (name === 'Change from 2025') return `${value.toFixed(1)}%`;
-                    return value;
-                  }}
-                />} 
+                content={
+                  <CustomTooltip 
+                    formatter={formatCurrency}
+                    baselineValue={baselineMedianIncome}
+                    baselineYear={baselineYear}
+                  />
+                } 
               />
-              <Legend wrapperStyle={{ fontFamily: 'Roboto, sans-serif' }} />
               <ReferenceLine
                 y={baselineMedianIncome}
-                yAxisId="left"
                 stroke="var(--medium-dark-gray)"
                 strokeDasharray="3 3"
-                isFront={false}
+                label={{ 
+                  value: "Baseline (2025)", 
+                  position: "right",
+                  fill: "var(--dark-gray)",
+                  fontSize: 12,
+                  fontFamily: "Roboto, sans-serif"
+                }}
               />
               <Line 
-                yAxisId="left"
                 type="monotone" 
                 dataKey="value" 
                 name="Median Income" 
@@ -148,19 +163,6 @@ export const ForecastResults = ({
                 dot={{ stroke: 'var(--blue)', strokeWidth: 2, fill: 'white', r: 4 }}
                 activeDot={{ stroke: 'var(--blue)', strokeWidth: 2, fill: 'var(--blue)', r: 6 }}
                 animationDuration={1500}
-                animationEasing="ease-out"
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="changeFromBaseline" 
-                name="Change from 2025" 
-                stroke="var(--teal-accent)" 
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={{ stroke: 'var(--teal-accent)', strokeWidth: 2, fill: 'white', r: 3 }}
-                activeDot={{ stroke: 'var(--teal-accent)', strokeWidth: 2, fill: 'var(--teal-accent)', r: 5 }}
-                animationDuration={1800}
                 animationEasing="ease-out"
               />
             </LineChart>
@@ -182,7 +184,7 @@ export const ForecastResults = ({
         
         <div style={{ height: '300px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={povertyRateWithChange} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+            <LineChart data={povertyRateByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
               <XAxis 
                 dataKey="year" 
@@ -190,40 +192,34 @@ export const ForecastResults = ({
                 tick={{ fontFamily: 'Roboto Mono, monospace' }} 
               />
               <YAxis 
-                yAxisId="left" 
                 orientation="left" 
                 tickFormatter={formatPercentage} 
                 stroke="var(--dark-red)"
                 tick={{ fontFamily: 'Roboto Mono, monospace' }}
                 tickMargin={5}
               />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                tickFormatter={(value) => `${value.toFixed(1)}pp`}
-                stroke="var(--blue)"
-                tick={{ fontFamily: 'Roboto Mono, monospace' }}
-                tickMargin={5}
-              />
               <Tooltip 
-                content={<CustomTooltip 
-                  formatter={(value: any, name: string) => {
-                    if (name === 'Poverty Rate') return formatPercentage(value);
-                    if (name === 'Change from 2025 (pp)') return `${value.toFixed(1)}pp`;
-                    return value;
-                  }}
-                />} 
+                content={
+                  <CustomTooltip 
+                    formatter={formatPercentage}
+                    baselineValue={baselinePovertyRate}
+                    baselineYear={baselineYear}
+                  />
+                } 
               />
-              <Legend wrapperStyle={{ fontFamily: 'Roboto, sans-serif' }} />
               <ReferenceLine
                 y={baselinePovertyRate}
-                yAxisId="left"
                 stroke="var(--medium-dark-gray)"
                 strokeDasharray="3 3"
-                isFront={false}
+                label={{ 
+                  value: "Baseline (2025)", 
+                  position: "right",
+                  fill: "var(--dark-gray)",
+                  fontSize: 12,
+                  fontFamily: "Roboto, sans-serif"
+                }}
               />
               <Line 
-                yAxisId="left"
                 type="monotone" 
                 dataKey="value" 
                 name="Poverty Rate" 
@@ -232,19 +228,6 @@ export const ForecastResults = ({
                 dot={{ stroke: 'var(--dark-red)', strokeWidth: 2, fill: 'white', r: 4 }}
                 activeDot={{ stroke: 'var(--dark-red)', strokeWidth: 2, fill: 'var(--dark-red)', r: 6 }}
                 animationDuration={1500}
-                animationEasing="ease-out"
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="changeInPctPoints" 
-                name="Change from 2025 (pp)" 
-                stroke="var(--blue)" 
-                strokeWidth={2}
-                strokeDasharray="5 5" 
-                dot={{ stroke: 'var(--blue)', strokeWidth: 2, fill: 'white', r: 3 }}
-                activeDot={{ stroke: 'var(--blue)', strokeWidth: 2, fill: 'var(--blue)', r: 5 }}
-                animationDuration={1800}
                 animationEasing="ease-out"
               />
             </LineChart>

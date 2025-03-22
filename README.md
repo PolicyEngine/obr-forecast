@@ -100,17 +100,38 @@ The application uses PolicyEngine to simulate the impact of economic forecasts o
 
 ## Deployment
 
-To deploy the frontend to Vercel:
+### Frontend Deployment
+
+Before deploying the frontend to Vercel, make sure to set the API URL environment variable:
+
+1. Update the `NEXT_PUBLIC_API_URL` in the `frontend/vercel.json` file with your deployed backend URL.
+
+2. To deploy the frontend to Vercel:
 
 ```
 make deploy-frontend
 ```
 
-For production deployment:
+3. For production deployment:
 
 ```
 make deploy-frontend-prod
 ```
+
+### Backend Deployment
+
+The backend API can be deployed to any platform that supports Python applications. Some options include:
+
+- Heroku
+- AWS Lambda with API Gateway
+- Google Cloud Run
+- Digital Ocean App Platform
+
+When deploying the backend, make sure to:
+
+1. Set the appropriate CORS settings in `api/main.py` to allow requests from your frontend domain
+2. Configure the environment to use Python 3.11
+3. Install dependencies using `uv pip install -e .`
 
 ## License
 

@@ -261,29 +261,67 @@ input[type="range"]::-moz-range-thumb:hover {
 /* Tabs styling */
 .tabs-list {
   display: flex;
-  border-bottom: 1px solid var(--medium-dark-gray);
+  position: relative;
+  background-color: var(--blue-light);
+  border-radius: 8px;
+  padding: 4px;
   margin-bottom: 1.5rem;
+  overflow: hidden;
 }
 
 .tab-trigger {
   flex: 1;
-  padding: 0.75rem;
+  padding: 10px 16px;
   text-align: center;
-  border-bottom: 2px solid transparent;
   cursor: pointer;
   font-family: 'Roboto', sans-serif;
-  transition: all 0.2s ease;
-  color: var(--dark-gray);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  color: var(--darkest-blue);
+  position: relative;
+  z-index: 1;
+  font-size: 0.95rem;
+  border-radius: 4px;
 }
 
 .tab-trigger[data-state="active"] {
-  border-bottom-color: var(--blue);
-  color: var(--blue);
-  font-weight: 500;
+  color: var(--darkest-blue);
 }
 
-.tab-trigger:hover {
-  color: var(--blue);
+.tab-trigger:hover:not([data-state="active"]) {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Active tab highlight effect */
+.tabs-list::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 50%;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tabs-list[data-orientation="horizontal"][data-state="custom"]::before {
+  left: 50%;
+  right: 4px;
+}
+
+/* Tab content animations */
+.tab-content {
+  animation: fadeIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Animation */
@@ -379,4 +417,58 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .site-footer a:hover {
   text-decoration: underline;
+}
+
+/* Fixed sidebar */
+.fixed-sidebar {
+  transition: top 0.2s ease;
+  z-index: 10;
+}
+
+.fixed-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fixed-sidebar::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 4px;
+}
+
+.fixed-sidebar::-webkit-scrollbar-thumb {
+  background: var(--medium-dark-gray);
+  border-radius: 4px;
+}
+
+.fixed-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-gray);
+}
+
+/* Card styles in the sidebar should have no shadow to avoid visual clutter */
+.fixed-sidebar .card {
+  box-shadow: none;
+  border: 1px solid var(--light-gray);
+}
+
+.fixed-sidebar .card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Growth rates container */
+.growth-rates-container {
+  padding-top: 0.5rem;
+}
+
+/* Responsive layout */
+@media (max-width: 1023px) {
+  main .container > div {
+    flex-direction: column !important;
+  }
+  
+  .fixed-sidebar {
+    width: 100% !important;
+    position: relative !important;
+    top: 0 !important;
+    margin-bottom: 2rem;
+  }
 }
