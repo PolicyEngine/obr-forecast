@@ -59,7 +59,7 @@ async def calculate_forecast_impact(request: ForecastRequest):
             }
         
         # Get the dataframe with simulation results
-        df = get_dataframe(growth_rates, subsample=1000)  # Using smaller subsample for faster API responses
+        df = get_dataframe(growth_rates, subsample=10_000)  # Using smaller subsample for faster API responses
         
         # Calculate median income by year
         median_income_by_year = []
@@ -68,13 +68,8 @@ async def calculate_forecast_impact(request: ForecastRequest):
         # Include 2025 as baseline
         for year in range(2025, START_YEAR + len(FORECAST_YEARS)):
             # Calculate median income
-            year_df = df.df[df.df.year == year]
-            median_income = df.weighted_quantile(
-                variable="household_net_income", 
-                weights="household_weight",
-                subset=df.df.year == year,
-                q=0.5
-            )[0]
+            year_df = df[df.year == year]
+            median_income = year_df.household_net_income.median()
             
             median_income_by_year.append({
                 "year": int(year),
@@ -82,8 +77,8 @@ async def calculate_forecast_impact(request: ForecastRequest):
             })
             
             # Calculate poverty rate
-            in_poverty_count = year_df[year_df.in_poverty].household_weight.sum()
-            total_count = year_df.household_weight.sum()
+            in_poverty_count = year_df[year_df.in_poverty].household_weight.values.sum()
+            total_count = year_df.household_weight.values.sum()
             poverty_rate = float(in_poverty_count / total_count)
             
             poverty_rate_by_year.append({
@@ -100,4 +95,5 @@ async def calculate_forecast_impact(request: ForecastRequest):
             }
         }
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))

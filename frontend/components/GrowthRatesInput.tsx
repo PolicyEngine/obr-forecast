@@ -1,25 +1,8 @@
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Grid,
-  HStack,
-  Heading,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  VStack,
-} from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Label } from './ui/label';
+import { Input } from './ui/input';
+import { Slider } from './ui/slider';
 
 type GrowthRateType = 'earned_income' | 'mixed_income' | 'capital_income' | 'inflation';
 
@@ -37,6 +20,13 @@ const GROWTH_RATE_LABELS: Record<GrowthRateType, string> = {
   mixed_income: 'Mixed Income Growth',
   capital_income: 'Capital Income Growth',
   inflation: 'Inflation Rate',
+};
+
+const GROWTH_RATE_DESCRIPTIONS: Record<GrowthRateType, string> = {
+  earned_income: 'Growth in wages and employment income',
+  mixed_income: 'Growth in self-employment and business income',
+  capital_income: 'Growth in dividend, interest, and investment income',
+  inflation: 'General price level changes affecting costs and some benefits',
 };
 
 export const GrowthRatesInput = ({
@@ -65,68 +55,72 @@ export const GrowthRatesInput = ({
     }));
   };
 
-  // Format values for display (convert from decimal to percentage)
-  const formatValue = (value: number) => `${(value * 100).toFixed(1)}%`;
-  const parseValue = (value: string) => parseFloat(value.replace('%', '')) / 100;
+  // Format percentage display
+  const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`;
 
   return (
-    <Box>
-      <VStack spacing={4} align="stretch">
-        <Heading size="md">Economic Growth Assumptions</Heading>
-        <Text>
-          Adjust the growth factors for each year of the forecast to simulate different economic
-          scenarios.
-        </Text>
-
-        <Box overflowX="auto">
-          <Table size="sm" variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Growth Factor</Th>
-                {years.map((year) => (
-                  <Th key={year} isNumeric>
-                    {year}
-                  </Th>
-                ))}
-              </Tr>
-            </Thead>
-            <Tbody>
-              {Object.entries(GROWTH_RATE_LABELS).map(([type, label]) => (
-                <Tr key={type}>
-                  <Td fontWeight="medium">{label}</Td>
-                  {years.map((year) => (
-                    <Td key={year} isNumeric>
-                      <NumberInput
-                        size="sm"
-                        value={formatValue(
-                          growthRates[type as GrowthRateType][year] || 0
-                        )}
-                        onChange={(valueString) => {
+    <div className="space-y-8">
+      {Object.entries(GROWTH_RATE_LABELS).map(([type, label]) => (
+        <Card key={type} className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle>{label}</CardTitle>
+            <CardDescription>{GROWTH_RATE_DESCRIPTIONS[type as GrowthRateType]}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {years.map((year) => {
+                const value = growthRates[type as GrowthRateType][year] || 0;
+                
+                return (
+                  <div key={year} className="grid grid-cols-12 items-center gap-4">
+                    <div className="col-span-2">
+                      <Label className="text-right block">{year}</Label>
+                    </div>
+                    <div className="col-span-7">
+                      <Slider
+                        value={[value * 100]}
+                        min={-5}
+                        max={15}
+                        step={0.1}
+                        onValueChange={(newValue) => {
                           handleGrowthRateChange(
                             type as GrowthRateType,
                             year,
-                            parseValue(valueString)
+                            newValue[0] / 100
                           );
                         }}
-                        min={-0.1}
-                        max={0.2}
-                        step={0.005}
-                        precision={1}
-                      >
-                        <NumberInputField />
-                        <NumberInputStepper>
-                          <NumberIncrementStepper />
-                          <NumberDecrementStepper />
-                        </NumberInputStepper>
-                      </NumberInput>
-                    </Td>
-                  ))}
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
-      </VStack>
-    </Box>
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          value={(value * 100).toFixed(1)}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value) / 100;
+                            if (!isNaN(newValue)) {
+                              handleGrowthRateChange(
+                                type as GrowthRateType,
+                                year,
+                                newValue
+                              );
+                            }
+                          }}
+                          min={-5}
+                          max={15}
+                          step={0.1}
+                          className="w-20"
+                        />
+                        <span className="text-sm">%</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
