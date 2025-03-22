@@ -5,8 +5,6 @@ import Head from 'next/head';
 import { ForecastSelector } from '../components/ForecastSelector';
 import { ForecastResults } from '../components/ForecastResults';
 import { GrowthRatesInput } from '../components/GrowthRatesInput';
-import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
 
 // Types
 type GrowthRateType = 'earned_income' | 'mixed_income' | 'capital_income' | 'inflation';
@@ -89,23 +87,25 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
       <Head>
         <title>OBR Forecast Impact Estimator</title>
         <meta name="description" content="Estimate the impact of OBR forecasts using PolicyEngine" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="container py-10 space-y-10">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">OBR Forecast Impact Estimator</h1>
-          <p className="text-xl text-muted-foreground">
+      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <header className="text-center mb-4" style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            OBR Forecast Impact Estimator
+          </h1>
+          <p className="text-muted" style={{ fontSize: '1.25rem' }}>
             Analyze the impact of Office for Budget Responsibility forecasts using PolicyEngine
           </p>
-        </div>
+        </header>
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1 space-y-6">
+        <div className="grid grid-cols-4" style={{ gap: '1.5rem' }}>
+          <div className="space-y-6">
             <ForecastSelector 
               onSelectForecast={setSelectedForecast}
               selectedForecast={selectedForecast}
@@ -113,21 +113,18 @@ const Home: NextPage = () => {
               forecastType={forecastType}
             />
             
-            <Card>
-              <CardContent className="pt-6">
-                <Button 
-                  className="w-full"
-                  size="lg"
-                  onClick={handleAnalyze}
-                  disabled={isLoading || (forecastType === 'actual' && !selectedForecast)}
-                >
-                  {isLoading ? 'Analyzing...' : 'Analyze Forecast Impact'}
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="card">
+              <button 
+                className="btn btn-lg btn-block"
+                onClick={handleAnalyze}
+                disabled={isLoading || (forecastType === 'actual' && !selectedForecast)}
+              >
+                {isLoading ? 'Analyzing...' : 'Analyze Forecast Impact'}
+              </button>
+            </div>
           </div>
           
-          <div className="lg:col-span-3">
+          <div style={{ gridColumn: 'span 3' }}>
             {forecastType === 'custom' && forecastYears.length > 0 && defaultGrowthRates && (
               <GrowthRatesInput
                 years={forecastYears}
@@ -137,13 +134,13 @@ const Home: NextPage = () => {
             )}
             
             {isLoading && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                  <div className="text-muted-foreground">
-                    <p>Running simulation with PolicyEngine...</p>
-                    <p className="text-sm">This may take a minute or two to complete</p>
-                  </div>
+              <div className="flex items-center justify-center" style={{ height: '300px' }}>
+                <div className="text-center">
+                  <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
+                  <p>Running simulation with PolicyEngine...</p>
+                  <p className="text-muted" style={{ fontSize: '0.875rem' }}>
+                    This may take a minute or two to complete
+                  </p>
                 </div>
               </div>
             )}
@@ -157,13 +154,13 @@ const Home: NextPage = () => {
             )}
           </div>
         </div>
-      </main>
+      </div>
       
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-          <p className="text-sm text-muted-foreground text-center md:text-left">
-            Built with <a href="https://policyengine.org" className="font-medium underline underline-offset-4">PolicyEngine</a>. 
-            Economic forecasts from the <a href="https://obr.uk" className="font-medium underline underline-offset-4">Office for Budget Responsibility</a>.
+      <footer style={{ borderTop: '1px solid #eaeaea', padding: '1rem 0' }}>
+        <div className="container">
+          <p className="text-muted text-center" style={{ fontSize: '0.875rem' }}>
+            Built with <a href="https://policyengine.org" style={{ textDecoration: 'underline' }}>PolicyEngine</a>. 
+            Economic forecasts from the <a href="https://obr.uk" style={{ textDecoration: 'underline' }}>Office for Budget Responsibility</a>.
           </p>
         </div>
       </footer>

@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Label } from './ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { Button } from './ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import * as Tabs from '@radix-ui/react-tabs';
 
 type Forecast = {
   id: string;
@@ -56,55 +46,69 @@ export const ForecastSelector = ({
   }, [onSelectForecast, selectedForecast]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Forecast Scenarios</CardTitle>
-        <CardDescription>
-          Select an official OBR forecast or create your own custom scenario
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs
-          defaultValue="actual"
-          value={forecastType}
-          onValueChange={(value) => onForecastTypeChange(value as ForecastType)}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-2 w-full mb-4">
-            <TabsTrigger value="actual">Official Forecasts</TabsTrigger>
-            <TabsTrigger value="custom">Custom Scenario</TabsTrigger>
-          </TabsList>
-          <TabsContent value="actual" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="forecast-select">Select OBR Forecast</Label>
-              <Select
-                disabled={loading || forecasts.length === 0}
-                value={selectedForecast}
-                onValueChange={onSelectForecast}
-              >
-                <SelectTrigger id="forecast-select">
-                  <SelectValue placeholder="Select a forecast" />
-                </SelectTrigger>
-                <SelectContent>
-                  {forecasts.map((forecast) => (
-                    <SelectItem key={forecast.id} value={forecast.id}>
-                      {forecast.name} ({forecast.date})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </TabsContent>
-          <TabsContent value="custom" className="space-y-4">
-            <div className="space-y-2">
-              <Label>Custom Forecast Scenario</Label>
-              <p className="text-sm text-muted-foreground">
-                Use the growth parameters below to define your own forecast scenario.
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="card">
+      <h3 className="card-title">Forecast Scenarios</h3>
+      <p className="card-description">
+        Select an official OBR forecast or create your own custom scenario
+      </p>
+      
+      <Tabs.Root 
+        defaultValue="actual" 
+        value={forecastType}
+        onValueChange={(value) => onForecastTypeChange(value as ForecastType)}
+      >
+        <Tabs.List className="flex border-b mb-4" style={{ marginBottom: '1rem' }}>
+          <Tabs.Trigger 
+            value="actual"
+            className="flex-1 py-2 px-4 border-b-2 text-center"
+            style={{ 
+              borderBottomColor: forecastType === 'actual' ? '#0070f3' : 'transparent',
+              fontWeight: forecastType === 'actual' ? 'bold' : 'normal',
+            }}
+          >
+            Official Forecasts
+          </Tabs.Trigger>
+          <Tabs.Trigger 
+            value="custom"
+            className="flex-1 py-2 px-4 border-b-2 text-center"
+            style={{ 
+              borderBottomColor: forecastType === 'custom' ? '#0070f3' : 'transparent',
+              fontWeight: forecastType === 'custom' ? 'bold' : 'normal',
+            }}
+          >
+            Custom Scenario
+          </Tabs.Trigger>
+        </Tabs.List>
+        
+        <Tabs.Content value="actual" className="space-y-6">
+          <div className="form-group">
+            <label htmlFor="forecast-select" className="form-label">Select OBR Forecast</label>
+            <select
+              id="forecast-select"
+              className="form-control"
+              value={selectedForecast}
+              onChange={(e) => onSelectForecast(e.target.value)}
+              disabled={loading || forecasts.length === 0}
+            >
+              <option value="" disabled>Select a forecast</option>
+              {forecasts.map((forecast) => (
+                <option key={forecast.id} value={forecast.id}>
+                  {forecast.name} ({forecast.date})
+                </option>
+              ))}
+            </select>
+          </div>
+        </Tabs.Content>
+        
+        <Tabs.Content value="custom" className="space-y-6">
+          <div className="form-group">
+            <label className="form-label">Custom Forecast Scenario</label>
+            <p className="text-muted">
+              Use the growth parameters below to define your own forecast scenario.
+            </p>
+          </div>
+        </Tabs.Content>
+      </Tabs.Root>
+    </div>
   );
 };

@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { Label } from './ui/label';
-import { Input } from './ui/input';
-import { Slider } from './ui/slider';
+import * as Slider from '@radix-ui/react-slider';
 
 type GrowthRateType = 'earned_income' | 'mixed_income' | 'capital_income' | 'inflation';
 
@@ -59,67 +56,74 @@ export const GrowthRatesInput = ({
   const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {Object.entries(GROWTH_RATE_LABELS).map(([type, label]) => (
-        <Card key={type} className="overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle>{label}</CardTitle>
-            <CardDescription>{GROWTH_RATE_DESCRIPTIONS[type as GrowthRateType]}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {years.map((year) => {
-                const value = growthRates[type as GrowthRateType][year] || 0;
-                
-                return (
-                  <div key={year} className="grid grid-cols-12 items-center gap-4">
-                    <div className="col-span-2">
-                      <Label className="text-right block">{year}</Label>
-                    </div>
-                    <div className="col-span-7">
-                      <Slider
-                        value={[value * 100]}
+        <div key={type} className="card">
+          <h3 className="card-title">{label}</h3>
+          <p className="card-description">{GROWTH_RATE_DESCRIPTIONS[type as GrowthRateType]}</p>
+          
+          <div className="space-y-6">
+            {years.map((year) => {
+              const value = growthRates[type as GrowthRateType][year] || 0;
+              
+              return (
+                <div key={year} className="grid" style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '100px 1fr 100px',
+                  gap: '1rem',
+                  alignItems: 'center' 
+                }}>
+                  <div>
+                    <label className="form-label text-center">{year}</label>
+                  </div>
+                  
+                  <div style={{ padding: '0 10px' }}>
+                    <input
+                      type="range"
+                      min={-5}
+                      max={15}
+                      step={0.1}
+                      value={value * 100}
+                      onChange={(e) => {
+                        handleGrowthRateChange(
+                          type as GrowthRateType,
+                          year,
+                          parseFloat(e.target.value) / 100
+                        );
+                      }}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={(value * 100).toFixed(1)}
+                        onChange={(e) => {
+                          const newValue = parseFloat(e.target.value) / 100;
+                          if (!isNaN(newValue)) {
+                            handleGrowthRateChange(
+                              type as GrowthRateType,
+                              year,
+                              newValue
+                            );
+                          }
+                        }}
                         min={-5}
                         max={15}
                         step={0.1}
-                        onValueChange={(newValue) => {
-                          handleGrowthRateChange(
-                            type as GrowthRateType,
-                            year,
-                            newValue[0] / 100
-                          );
-                        }}
+                        className="form-control"
+                        style={{ width: '70px' }}
                       />
-                    </div>
-                    <div className="col-span-3">
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          value={(value * 100).toFixed(1)}
-                          onChange={(e) => {
-                            const newValue = parseFloat(e.target.value) / 100;
-                            if (!isNaN(newValue)) {
-                              handleGrowthRateChange(
-                                type as GrowthRateType,
-                                year,
-                                newValue
-                              );
-                            }
-                          }}
-                          min={-5}
-                          max={15}
-                          step={0.1}
-                          className="w-20"
-                        />
-                        <span className="text-sm">%</span>
-                      </div>
+                      <span>%</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       ))}
     </div>
   );
