@@ -38,9 +38,20 @@ yarn-error.log*
 venv/
 env/
 ENV/
+.venv/
+.env/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# Local development
+.env
+.env.local
+
+# Cache
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

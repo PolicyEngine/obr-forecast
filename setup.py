@@ -11,6 +11,6 @@ setup(
     install_requires=[
         "fastapi",
         "uvicorn",
-        "policyengine-uk",
+        "policyengine==0.1.2",
     ],
 )

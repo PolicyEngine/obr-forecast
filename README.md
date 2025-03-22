@@ -10,6 +10,7 @@ A web application that uses PolicyEngine to estimate the impact of different Off
 - **Visualization**: Recharts
 - **UI Framework**: Chakra UI
 - **Deployment**: Vercel (frontend)
+- **Simulation**: PolicyEngine UK
 
 ## Prerequisites
 
@@ -51,20 +52,51 @@ This will start:
 
 ```
 obr-forecast/
-├── api/                 # FastAPI backend
-│   ├── endpoints/       # API route handlers
-│   │   └── forecasts.py # Forecast-related endpoints
-│   └── main.py          # API entry point
-├── frontend/            # Next.js frontend
-│   ├── components/      # React components
-│   ├── pages/           # Next.js pages
-│   ├── public/          # Static assets
-│   └── styles/          # CSS styles
-├── Makefile             # Development commands
-├── pyproject.toml       # Python project configuration
-├── setup.py             # Python package configuration
-└── README.md            # Project documentation
+├── api/                      # FastAPI backend
+│   ├── endpoints/            # API route handlers
+│   │   └── forecasts.py      # Forecast-related endpoints
+│   ├── utils/                # Utility functions
+│   │   └── forecast.py       # OBR forecast simulation logic
+│   └── main.py               # API entry point
+├── frontend/                 # Next.js frontend
+│   ├── components/           # React components
+│   │   ├── ForecastSelector.tsx    # Forecast selection component
+│   │   ├── GrowthRatesInput.tsx    # Growth factor input component 
+│   │   └── ForecastResults.tsx     # Results visualization component
+│   ├── pages/                # Next.js pages
+│   ├── public/               # Static assets
+│   └── styles/               # CSS styles
+├── Makefile                  # Development commands
+├── pyproject.toml            # Python project configuration
+├── setup.py                  # Python package configuration
+└── README.md                 # Project documentation
 ```
+
+## Features
+
+### OBR Forecast Simulation
+
+The application uses PolicyEngine to simulate the impact of economic forecasts on UK households:
+
+1. **Growth Factors**: Users can adjust several economic parameters:
+   - Earned Income Growth: Wage and salary growth rate
+   - Mixed Income Growth: Self-employment and business income growth
+   - Capital Income Growth: Investment, dividend and interest income growth
+   - Inflation Rate: General price level changes
+
+2. **Impact Metrics**:
+   - Median Household Income: Shows how income changes over the forecast period
+   - Poverty Rate: Tracks changes in the poverty headcount ratio
+
+3. **Analysis Period**:
+   - Baseline year: 2025
+   - Forecast period: 2026-2030
+
+### Technical Implementation
+
+- The frontend allows users to configure growth assumptions for each year and economic factor
+- The API applies these growth factors to a representative sample of UK households using PolicyEngine
+- Results are calculated by comparing household outcomes across the forecast period
 
 ## Deployment
 
