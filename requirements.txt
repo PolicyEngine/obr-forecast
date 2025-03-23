@@ -4,5 +4,5 @@ policyengine-uk
 policyengine==0.1.2
 pandas
 numpy
-microdf
+microdf_python
 python-dotenv
