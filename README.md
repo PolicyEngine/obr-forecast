@@ -20,38 +20,43 @@ A web application that uses PolicyEngine to estimate the impact of different Off
 
 ## Development Setup
 
-For development, you can run the frontend and API separately:
-
-### API (Backend)
+For development, you can run the frontend and API separately using the included Makefile:
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt -r api/requirements.txt
+make install
 
-# Start the API server
-uvicorn api.main:app --reload --port 8000
+# Start development services
+make dev
 ```
 
-The API will be available at http://localhost:8000/api
+This will start:
+- Backend API server at http://localhost:8000
+- Frontend development server at http://localhost:3000
 
-### Frontend
+You can also run services individually:
 
 ```bash
-# Navigate to frontend directory
-cd frontend
+# Run only the API
+make api
 
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+# Run only the frontend
+make frontend
 ```
-
-The frontend will be available at http://localhost:3000
 
 ## Docker Deployment
 
 The simplest way to run the complete application is with Docker:
+
+```bash
+# Build the Docker image
+make docker-build
+
+# Run the container
+make docker-run
+```
+
+Or use Docker commands directly:
 
 ```bash
 # Build the Docker image
@@ -82,7 +87,7 @@ The application will be available at http://localhost:8000
 │   ├── public/               # Static assets
 │   └── styles/               # CSS styles
 ├── Dockerfile                # Docker configuration
-├── .dockerignore             # Docker build exclusions
+├── Makefile                  # Development commands
 ├── pyproject.toml            # Python project configuration
 ├── setup.py                  # Python package configuration
 └── README.md                 # Project documentation
