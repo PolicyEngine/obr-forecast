@@ -3,3 +3,4 @@ uvicorn
 policyengine-uk
 policyengine==0.1.2
 python-dotenv
+starlette

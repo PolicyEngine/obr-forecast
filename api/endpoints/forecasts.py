@@ -3,8 +3,10 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import copy
 import traceback
+import json
 
 from api.utils.forecast import get_dataframe, GROWFACTORS, FORECAST_YEARS, START_YEAR
+from api.utils.cache import cached
 
 router = APIRouter(
     tags=["forecasts"],
@@ -40,6 +42,7 @@ class ForecastResponse(BaseModel):
     metadata: Dict[str, Any]
 
 @router.get("/api/forecasts")
+@cached(ttl_seconds=3600)  # Cache for 1 hour
 async def get_available_forecasts():
     """Get list of available OBR forecasts"""
     return {
@@ -51,6 +54,7 @@ async def get_available_forecasts():
     }
 
 @router.post("/api/forecasts/impact", response_model=ForecastResponse)
+@cached(ttl_seconds=1800)  # Cache for 30 minutes
 async def calculate_forecast_impact(request: ForecastRequest):
     """Calculate the impact of a specific forecast with growth rate parameters"""
     try:

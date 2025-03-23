@@ -1,7 +1,13 @@
 import os
 import datetime
-from fastapi import FastAPI
+import logging
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+import time
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="OBR Forecast Impact Estimator",
@@ -39,6 +45,39 @@ async def health_check():
         "api_version": "0.1.0",
         "timestamp": datetime.datetime.now().isoformat()
     }
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    """Middleware to log request processing time and cache status"""
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    # Log the request
+    logger.info(
+        f"Request: {request.method} {request.url.path} - "
+        f"Status: {response.status_code} - "
+        f"Time: {process_time:.3f}s - "
+        f"Cache: {response.headers.get('X-Cache-Hit', 'miss')}"
+    )
+    
+    return response
+
+@app.get("/api/cache/clear")
+async def clear_cache():
+    """Admin endpoint to clear the API cache"""
+    from api.utils.cache import clear_cache
+    clear_cache()
+    return {"status": "success", "message": "Cache cleared"}
+
+@app.get("/api/cache/stats")
+async def cache_stats():
+    """Get cache statistics"""
+    from api.utils.cache import get_cache_stats, remove_expired_cache_entries
+    # Clean up expired entries before returning stats
+    remove_expired_cache_entries()
+    return get_cache_stats()
 
 # Import and include routers from endpoints
 from api.endpoints import forecasts
