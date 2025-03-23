@@ -7,12 +7,12 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://your-backend-api-url.com"
+    "NEXT_PUBLIC_API_URL": "https://obr-forecast-api.vercel.app"
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://your-backend-api-url.com/$1"
+      "dest": "https://obr-forecast-api.vercel.app/$1"
     }
   ]
 }

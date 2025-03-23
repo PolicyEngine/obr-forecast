@@ -12,7 +12,7 @@ app = FastAPI(
 # Get allowed origins from environment variable or use default for development
 allowed_origins = os.environ.get(
     "ALLOWED_ORIGINS", 
-    "http://localhost:3000,http://localhost:8000"
+    "http://localhost:3000,http://localhost:8000,https://obr-forecast.vercel.app,https://obr-forecast-frontend.vercel.app"
 ).split(",")
 
 app.add_middleware(

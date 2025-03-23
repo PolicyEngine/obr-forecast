@@ -6,6 +6,7 @@ import { ForecastSelector } from '../components/ForecastSelector';
 import { ForecastResults } from '../components/ForecastResults';
 import { GrowthRatesInput } from '../components/GrowthRatesInput';
 import { DecileYearlyChangeChart } from '../components/DecileYearlyChangeChart';
+import { buildApiUrl } from '../lib/api';
 
 // Types
 type GrowthRateType = 'earned_income' | 'mixed_income' | 'capital_income' | 'inflation';
@@ -57,7 +58,7 @@ const Home: NextPage = () => {
         setError(null);
         
         // Use environment-aware API URL
-        const response = await axios.get('/api/forecasts');
+        const response = await axios.get(buildApiUrl('/forecasts'));
         if (response.data.forecasts.length > 0) {
           setSelectedForecast(response.data.forecasts[0].id);
         }
@@ -91,7 +92,7 @@ const Home: NextPage = () => {
     
     try {
       // Use environment-aware API URL
-      const response = await axios.post<ForecastResponse>('/api/forecasts/impact', {
+      const response = await axios.post<ForecastResponse>(buildApiUrl('/forecasts/impact'), {
         forecast_id: forecastType === 'actual' ? selectedForecast : 'custom',
         growth_rates: forecastType === 'custom' ? customGrowthRates : undefined,
       }, {

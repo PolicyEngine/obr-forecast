@@ -8,8 +8,8 @@ A web application that uses PolicyEngine to estimate the impact of different Off
 - **Frontend**: Next.js with TypeScript
 - **Dependency Management**: uv (Python), npm (JavaScript)
 - **Visualization**: Recharts
-- **UI Framework**: Chakra UI
-- **Deployment**: Vercel (frontend)
+- **UI Framework**: Radix UI
+- **Deployment**: Vercel (both frontend and backend)
 - **Simulation**: PolicyEngine UK
 
 ## Prerequisites
@@ -100,38 +100,75 @@ The application uses PolicyEngine to simulate the impact of economic forecasts o
 
 ## Deployment
 
+This application is configured to be fully deployable to Vercel for both frontend and backend.
+
 ### Frontend Deployment
 
-Before deploying the frontend to Vercel, make sure to set the API URL environment variable:
+The frontend is configured to be deployed to Vercel with the following steps:
 
-1. Update the `NEXT_PUBLIC_API_URL` in the `frontend/vercel.json` file with your deployed backend URL.
+1. Push your code to GitHub
+2. Connect your GitHub repository to Vercel
+3. Create a new project and select the `frontend` directory as your root directory
+4. Vercel will automatically detect the Next.js project and deploy it
+5. Environment variables are configured in `frontend/vercel.json`
 
-2. To deploy the frontend to Vercel:
+Or, deploy directly from the command line:
 
-```
+```bash
 make deploy-frontend
 ```
 
-3. For production deployment:
+For production deployment:
 
-```
+```bash
 make deploy-frontend-prod
 ```
 
 ### Backend Deployment
 
-The backend API can be deployed to any platform that supports Python applications. Some options include:
+The FastAPI backend is also configured for Vercel deployment using Vercel's Python runtime:
 
-- Heroku
-- AWS Lambda with API Gateway
-- Google Cloud Run
-- Digital Ocean App Platform
+1. Push your code to GitHub
+2. Connect your GitHub repository to Vercel
+3. Create a new project and select the `api` directory as your root directory
+4. Vercel will automatically detect the Python project with vercel.json configuration
+5. Set the Python version to 3.11 in the Vercel project settings
 
-When deploying the backend, make sure to:
+Or, deploy directly from the command line:
 
-1. Set the appropriate CORS settings in `api/main.py` to allow requests from your frontend domain
-2. Configure the environment to use Python 3.11
-3. Install dependencies using `uv pip install -e .`
+```bash
+make deploy-api
+```
+
+For production deployment:
+
+```bash
+make deploy-api-prod
+```
+
+### Setup in Vercel Dashboard
+
+1. Create two separate projects in Vercel:
+   - One for the frontend (pointing to the `frontend` directory)
+   - One for the API (pointing to the `api` directory)
+
+2. Set custom domains for both projects if needed (e.g., `app.yourdomain.com` and `api.yourdomain.com`)
+
+3. Make sure the frontend's environment variable `NEXT_PUBLIC_API_URL` points to your API's URL
+
+4. Update the API's `ALLOWED_ORIGINS` environment variable in Vercel to include your frontend domain
+
+### Environment Variables
+
+#### Frontend
+
+The following variables are configured in `frontend/vercel.json`:
+- `NEXT_PUBLIC_API_URL`: URL of your deployed API
+
+#### Backend
+
+The following variables are configured in `api/vercel.json`:
+- `ALLOWED_ORIGINS`: Comma-separated list of domains allowed to access the API
 
 ## License
 

@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    { 
+      "src": "vercel.py", 
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    { 
+      "src": "/(.*)", 
+      "dest": "vercel.py" 
+    }
+  ],
+  "env": {
+    "ALLOWED_ORIGINS": "https://obr-forecast.vercel.app,https://obr-forecast-frontend.vercel.app,http://localhost:3000"
+  }
+}

@@ -1,4 +1,4 @@
-.PHONY: setup venv install dev server frontend build-frontend deploy-frontend build-frontend-prod deploy-frontend-prod
+.PHONY: setup venv install dev server frontend build-frontend deploy-frontend build-frontend-prod deploy-frontend-prod deploy-api deploy-api-prod
 
 # Ensure Python 3.11 is required
 setup:
@@ -33,3 +33,9 @@ build-frontend-prod:
 
 deploy-frontend-prod:
 	vercel --prod
+	
+deploy-api:
+	cd api && vercel
+
+deploy-api-prod:
+	cd api && vercel --prod
