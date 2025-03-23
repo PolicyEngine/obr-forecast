@@ -2,7 +2,6 @@ import os
 import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.utils.static import setup_static_files
 
 app = FastAPI(
     title="OBR Forecast Impact Estimator",
@@ -46,5 +45,32 @@ from api.endpoints import forecasts
 
 app.include_router(forecasts.router)
 
-# Setup static file serving (must be done after API routes)
-setup_static_files(app)
+# Import and handle static file routes
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+# Setup API routes first
+# Then setup static file serving (must be done after API routes)
+static_dir = os.environ.get("STATIC_FILES_DIR", "../static")
+static_path = Path(static_dir)
+
+# Only serve static files if the directory exists
+if static_path.exists() and static_path.is_dir():
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+else:
+    # For development, still implement the catch-all for SPA
+    from fastapi.responses import FileResponse
+    
+    @app.get("/{path:path}")
+    async def catch_all(path: str):
+        # Skip API routes
+        if path.startswith("api/"):
+            return {"message": f"Route {path} not found"}
+        
+        # For non-API routes, try to serve from static dir if it exists
+        index_path = Path(static_dir) / "index.html"
+        if static_path.exists() and static_path.is_dir() and index_path.exists():
+            return FileResponse(index_path)
+        
+        # If static dir doesn't exist, return a message
+        return {"message": "Frontend not built yet. This endpoint is for development only."}
