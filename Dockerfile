@@ -1,24 +1,6 @@
-FROM python:3.10-slim
-
+FROM node:22.2.0
+COPY . /app
 WORKDIR /app
-
-# Copy requirements files
-COPY requirements.txt ./
-COPY api/requirements.txt ./api-requirements.txt
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt -r api-requirements.txt
-
-# Install Node.js and npm for frontend build
-RUN apt-get update && apt-get install -y \
-    curl \
-    nodejs \
-    npm \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy frontend code
-COPY frontend/ ./frontend/
 
 # Build frontend
 WORKDIR /app/frontend
@@ -26,10 +8,12 @@ RUN npm install
 RUN npm run build
 RUN mkdir -p /app/static && cp -r out/* /app/static/
 
-# Copy API code
-WORKDIR /app
-COPY api/ ./api/
-COPY pyproject.toml setup.py ./
+# Install backend
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN uv venv --python 3.11
+ENV PATH="/app/.venv/bin:$PATH"
+RUN uv pip install -r api/requirements.txt
+
 
 # Setup environment variables
 ENV PYTHONPATH=/app
