@@ -100,75 +100,61 @@ The application uses PolicyEngine to simulate the impact of economic forecasts o
 
 ## Deployment
 
-This application is configured to be fully deployable to Vercel for both frontend and backend.
+This application is configured to be deployed to Vercel as a single integrated service, where FastAPI serves both the API endpoints and the static frontend files.
 
-### Frontend Deployment
-
-The frontend is configured to be deployed to Vercel with the following steps:
+### Vercel Deployment
 
 1. Push your code to GitHub
 2. Connect your GitHub repository to Vercel
-3. Create a new project and select the `frontend` directory as your root directory
-4. Vercel will automatically detect the Next.js project and deploy it
-5. Environment variables are configured in `frontend/vercel.json`
+3. Create a new project with the repository root as the project root
+4. Vercel will automatically detect the configuration in `vercel.json` and build both frontend and backend
+5. The application will be deployed as a single service with FastAPI serving both the API and the static frontend files
 
 Or, deploy directly from the command line:
 
 ```bash
-make deploy-frontend
+vercel
 ```
 
 For production deployment:
 
 ```bash
-make deploy-frontend-prod
+vercel --prod
 ```
 
-### Backend Deployment
+### How It Works
 
-The FastAPI backend is also configured for Vercel deployment using Vercel's Python runtime:
+The deployment process follows these steps:
 
-1. Push your code to GitHub
-2. Connect your GitHub repository to Vercel
-3. Create a new project and select the `api` directory as your root directory
-4. Vercel will automatically detect the Python project with vercel.json configuration
-5. Set the Python version to 3.11 in the Vercel project settings
+1. The `buildCommand` in `vercel.json` builds the frontend Next.js app as static files
+   - Runs `npm install` and `npm run build` in the `frontend` directory
+   - Creates a `dist` directory in the project root
+   - Copies the built static files to the `dist` directory
 
-Or, deploy directly from the command line:
+2. The `installCommand` installs Python dependencies from `requirements.txt`
+
+3. The FastAPI app is deployed using Vercel's Python runtime
+   - The FastAPI app is configured to serve API endpoints under the `/api` path
+   - The FastAPI app also serves the static frontend files from the `dist` directory
+
+4. Vercel routes are configured to:
+   - Send all `/api/*` requests to the FastAPI app
+   - Serve static files directly when they exist
+   - Send all other requests to the FastAPI app, which serves the SPA index.html
+
+### Local Development
+
+For local development, you can continue to run the frontend and backend separately:
 
 ```bash
-make deploy-api
+make dev
 ```
 
-For production deployment:
+This will start:
+- Backend API server at http://localhost:8000
+- Frontend development server at http://localhost:3000
 
-```bash
-make deploy-api-prod
-```
-
-### Setup in Vercel Dashboard
-
-1. Create two separate projects in Vercel:
-   - One for the frontend (pointing to the `frontend` directory)
-   - One for the API (pointing to the `api` directory)
-
-2. Set custom domains for both projects if needed (e.g., `app.yourdomain.com` and `api.yourdomain.com`)
-
-3. Make sure the frontend's environment variable `NEXT_PUBLIC_API_URL` points to your API's URL
-
-4. Update the API's `ALLOWED_ORIGINS` environment variable in Vercel to include your frontend domain
-
-### Environment Variables
-
-#### Frontend
-
-The following variables are configured in `frontend/vercel.json`:
-- `NEXT_PUBLIC_API_URL`: URL of your deployed API
-
-#### Backend
-
-The following variables are configured in `api/vercel.json`:
-- `ALLOWED_ORIGINS`: Comma-separated list of domains allowed to access the API
+The frontend is configured to proxy API requests to the backend during development.
 
 ## License
 
