@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import('@tailwindcss/postcss7-compat').Config} */
 module.exports = {
   darkMode: ["class"],
   content: [
@@ -72,5 +72,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 }
