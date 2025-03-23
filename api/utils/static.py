@@ -8,8 +8,8 @@ from pathlib import Path
 def setup_static_files(app: FastAPI):
     """Configure the FastAPI app to serve static files from the frontend build"""
     
-    # Define path to the static files (Vercel puts them in /dist)
-    static_dir = os.environ.get("STATIC_FILES_DIR", "../dist")
+    # Define path to the static files
+    static_dir = os.environ.get("STATIC_FILES_DIR", "../static")
     static_path = Path(static_dir)
     
     # Check if the static directory exists 
