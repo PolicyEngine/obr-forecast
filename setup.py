@@ -7,7 +7,6 @@ setup(
     author_email="nikhil.woodruff@policyengine.org",
     description="OBR forecast impact estimator using PolicyEngine",
     packages=find_packages(),
-    python_requires="==3.11.*",
     install_requires=[
         "fastapi",
         "uvicorn",
