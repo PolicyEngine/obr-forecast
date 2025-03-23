@@ -1,8 +1,8 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-policyengine-uk==0.45.0
+fastapi
+uvicorn
+policyengine-uk
 policyengine==0.1.2
-pandas==2.1.1
-numpy==1.26.0
-microdf==0.3.1
-python-dotenv==1.0.0
+pandas
+numpy
+microdf
+python-dotenv
