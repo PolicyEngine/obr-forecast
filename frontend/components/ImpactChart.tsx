@@ -1,13 +1,4 @@
-import {
-  Box,
-  Card,
-  CardBody,
-  CardHeader,
-  Flex,
-  Heading,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+// Using native elements instead of Chakra UI
 import {
   Bar,
   BarChart,
@@ -38,15 +29,15 @@ export const ImpactChart = () => {
   // that would be updated when a forecast is analyzed
 
   return (
-    <Card variant="outline">
-      <CardHeader>
-        <Heading size="md">Forecast Impact by Income Decile</Heading>
-      </CardHeader>
-      <CardBody>
-        <VStack spacing={4} align="stretch">
-          <Text>Impact of forecast on household income by decile</Text>
+    <div className="border rounded-lg shadow-sm overflow-hidden">
+      <div className="p-4 border-b">
+        <h3 className="text-lg font-semibold">Forecast Impact by Income Decile</h3>
+      </div>
+      <div className="p-4">
+        <div className="space-y-4">
+          <p>Impact of forecast on household income by decile</p>
           
-          <Box height="400px">
+          <div style={{ height: "400px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sampleData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -66,15 +57,15 @@ export const ImpactChart = () => {
                 <Bar dataKey="value" name="Impact" fill="#3182CE" />
               </BarChart>
             </ResponsiveContainer>
-          </Box>
+          </div>
           
-          <Flex justifyContent="flex-end">
-            <Text fontSize="sm" color="gray.500">
+          <div className="flex justify-end">
+            <p className="text-sm text-gray-500">
               Data calculated using PolicyEngine
-            </Text>
-          </Flex>
-        </VStack>
-      </CardBody>
-    </Card>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
