@@ -129,6 +129,7 @@ export const DecileYearlyChangeChart = ({
               tickFormatter={formatPercentage} 
               stroke="var(--dark-gray)"
               tick={{ fontFamily: 'Roboto Mono, monospace' }}
+              domain={['auto', 'auto']}
               label={{
                 value: 'Year-over-Year Change',
                 angle: -90,
@@ -138,15 +139,7 @@ export const DecileYearlyChangeChart = ({
               }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              payload={
-                Array.from({ length: 10 }, (_, i) => i + 1).map(decile => ({
-                  value: `Decile ${decile}`,
-                  type: 'square',
-                  color: getDecileColor(decile)
-                }))
-              }
-            />
+            {/* Legend removed to save space */}
             <ReferenceLine y={0} stroke="var(--dark-gray)" />
             
             {/* Create a bar for each decile */}

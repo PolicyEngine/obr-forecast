@@ -49,12 +49,10 @@ def get_cumulative_growth(base_year: int, target_year: int, growth_rates: dict) 
 
 def get_dataframe(
     growfactors: dict,
-    subsample: int | None = None,
 ) -> MicroDataFrame:
     simulation = Simulation(
         country="uk",
         scope="macro",
-        subsample=subsample,
     ).baseline_simulation
 
     simulation.tax_benefit_system.load_parameters(simulation.tax_benefit_system.parameters_dir)

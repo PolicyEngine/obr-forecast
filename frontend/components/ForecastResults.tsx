@@ -111,13 +111,59 @@ export const ForecastResults = ({
     return null;
   };
 
+  // Get last year's data for summary block
+  const lastYear = medianIncomeByYear.length > 0 ? medianIncomeByYear[medianIncomeByYear.length - 1].year : 0;
+  const lastYearMedianIncome = medianIncomeByYear.length > 0 ? medianIncomeByYear[medianIncomeByYear.length - 1].value : 0;
+  const lastYearPovertyRate = povertyRateByYear.length > 0 ? povertyRateByYear[povertyRateByYear.length - 1].value : 0;
+  
+  // Calculate changes from baseline
+  const incomeChange = lastYearMedianIncome - baselineMedianIncome;
+  const incomeChangePercent = ((incomeChange / baselineMedianIncome) * 100).toFixed(1);
+  const povertyChange = lastYearPovertyRate - baselinePovertyRate;
+  const povertyChangePoints = (povertyChange * 100).toFixed(1);
+  
+  // Estimate poverty headcount (assuming UK population of 67 million)
+  const ukPopulation = 67000000;
+  const baselinePovertyHeadcount = Math.round(baselinePovertyRate * ukPopulation);
+  const lastYearPovertyHeadcount = Math.round(lastYearPovertyRate * ukPopulation);
+  const povertyHeadcountChange = lastYearPovertyHeadcount - baselinePovertyHeadcount;
+  
   return (
-    <div className="grid grid-cols-2 fade-in" style={{ gap: '1.5rem', animationDelay: '300ms' }}>
+    <div className="space-y-6 fade-in" style={{ animationDelay: '300ms' }}>
+      {/* Summary block */}
+      <div className="card">
+        <h3 className="card-title">Forecast Summary</h3>
+        <p className="card-description">Key changes from {baselineYear} to {lastYear}</p>
+        
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <p className="text-lg font-medium">Median Household Income</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {formatCurrency(lastYearMedianIncome)} 
+              <span className={incomeChange >= 0 ? "text-green-600" : "text-red-600"}>
+                ({incomeChange >= 0 ? "+" : ""}{formatCurrency(incomeChange)} / {incomeChangePercent}%)
+              </span>
+            </p>
+          </div>
+          <div>
+            <p className="text-lg font-medium">Absolute Poverty Rate</p>
+            <p className="text-2xl font-bold text-red-600">
+              {formatPercentage(lastYearPovertyRate)} 
+              <span className={povertyChange <= 0 ? "text-green-600" : "text-red-600"}>
+                ({povertyChange <= 0 ? "" : "+"}{povertyChangePoints}pp / 
+                {povertyHeadcountChange <= 0 ? "" : "+"}{Math.abs(povertyHeadcountChange).toLocaleString()} people)
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Existing charts - now full width */}
       <div className="card">
         <h3 className="card-title">Median Household Income</h3>
         <p className="card-description">Annual household income after taxes and benefits</p>
         
-        <div style={{ height: '300px' }}>
+        <div style={{ height: '350px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={medianIncomeByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
@@ -132,6 +178,7 @@ export const ForecastResults = ({
                 stroke="var(--blue)"
                 tick={{ fontFamily: 'Roboto Mono, monospace' }}
                 tickMargin={5}
+                domain={['auto', 'auto']}
               />
               <Tooltip 
                 content={
@@ -182,7 +229,7 @@ export const ForecastResults = ({
         <h3 className="card-title">Poverty Rate</h3>
         <p className="card-description">Percentage of population below the poverty line</p>
         
-        <div style={{ height: '300px' }}>
+        <div style={{ height: '350px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={povertyRateByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
@@ -197,6 +244,7 @@ export const ForecastResults = ({
                 stroke="var(--dark-red)"
                 tick={{ fontFamily: 'Roboto Mono, monospace' }}
                 tickMargin={5}
+                domain={['auto', 'auto']}
               />
               <Tooltip 
                 content={

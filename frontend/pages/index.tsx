@@ -201,16 +201,16 @@ const Home: NextPage = () => {
             
             {!isLoading && !error && forecastResults && (
               <div className="space-y-6 fade-in" style={{ animationDelay: '300ms' }}>
-                {/* Show the decile yearly change chart first */}
-                <DecileYearlyChangeChart
-                  decileYearlyChanges={forecastResults.decile_yearly_changes}
-                  isLoading={isLoading}
-                />
-
-                {/* Then show the other charts */}
+                {/* Show the ForecastResults first with summary */}
                 <ForecastResults
                   medianIncomeByYear={forecastResults.median_income_by_year}
                   povertyRateByYear={forecastResults.poverty_rate_by_year}
+                  isLoading={isLoading}
+                />
+                
+                {/* Then show the decile yearly change chart */}
+                <DecileYearlyChangeChart
+                  decileYearlyChanges={forecastResults.decile_yearly_changes}
                   isLoading={isLoading}
                 />
               </div>
