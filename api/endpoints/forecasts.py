@@ -7,7 +7,7 @@ import traceback
 from api.utils.forecast import get_dataframe, GROWFACTORS, FORECAST_YEARS, START_YEAR
 
 router = APIRouter(
-    prefix="/forecasts",
+    prefix="/api/forecasts",
     tags=["forecasts"],
 )
 

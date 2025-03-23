@@ -2,11 +2,16 @@ import os
 import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.utils.static import setup_static_files
 
 app = FastAPI(
     title="OBR Forecast Impact Estimator",
     description="API for estimating impacts of different OBR forecasts using PolicyEngine",
     version="0.1.0",
+    # Remove default docs to avoid conflicts with static file serving
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
 )
 
 # Get allowed origins from environment variable or use default for development
@@ -23,11 +28,11 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "OBR Forecast Impact Estimator API"}
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     """Health check endpoint for monitoring"""
     return {
@@ -40,3 +45,6 @@ async def health_check():
 from api.endpoints import forecasts
 
 app.include_router(forecasts.router)
+
+# Setup static file serving (must be done after API routes)
+setup_static_files(app)
