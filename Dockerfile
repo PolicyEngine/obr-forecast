@@ -12,7 +12,7 @@ RUN mkdir -p /app/static && cp -r out/* /app/static/
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN uv venv --python 3.11
 ENV PATH="/app/.venv/bin:$PATH"
-RUN uv pip install -r api/requirements.txt
+RUN uv pip install -r /app/api/requirements.txt
 
 
 # Setup environment variables
@@ -23,4 +23,4 @@ ENV STATIC_FILES_DIR=/app/static
 EXPOSE 8000
 
 # Command to run the application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", "8000"]

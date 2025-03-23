@@ -58,7 +58,7 @@ const Home: NextPage = () => {
         setError(null);
         
         // Use environment-aware API URL
-        const response = await axios.get(buildApiUrl('/forecasts'));
+        const response = await axios.get("/api/forecasts");
         if (response.data.forecasts.length > 0) {
           setSelectedForecast(response.data.forecasts[0].id);
         }
@@ -92,7 +92,7 @@ const Home: NextPage = () => {
     
     try {
       // Use environment-aware API URL
-      const response = await axios.post<ForecastResponse>(buildApiUrl('/forecasts/impact'), {
+      const response = await axios.post<ForecastResponse>('/api/forecasts/impact', {
         forecast_id: forecastType === 'actual' ? selectedForecast : 'custom',
         growth_rates: forecastType === 'custom' ? customGrowthRates : undefined,
       }, {

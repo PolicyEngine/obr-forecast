@@ -7,7 +7,6 @@ import traceback
 from api.utils.forecast import get_dataframe, GROWFACTORS, FORECAST_YEARS, START_YEAR
 
 router = APIRouter(
-    prefix="/api/forecasts",
     tags=["forecasts"],
 )
 
@@ -40,7 +39,7 @@ class ForecastResponse(BaseModel):
     decile_yearly_changes: List[DecileYearlyChange]
     metadata: Dict[str, Any]
 
-@router.get("/")
+@router.get("/api/forecasts")
 async def get_available_forecasts():
     """Get list of available OBR forecasts"""
     return {
@@ -51,7 +50,7 @@ async def get_available_forecasts():
         "default_growth_rates": GROWFACTORS,
     }
 
-@router.post("/impact", response_model=ForecastResponse)
+@router.post("/api/forecasts/impact", response_model=ForecastResponse)
 async def calculate_forecast_impact(request: ForecastRequest):
     """Calculate the impact of a specific forecast with growth rate parameters"""
     try:

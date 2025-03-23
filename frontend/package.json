@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:all": "concurrently \"cd ../api && uvicorn main:app --reload --port 8000\" \"next dev\""
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.2",
@@ -32,6 +33,7 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "concurrently": "^9.1.2",
     "eslint": "^8.50.0",
     "eslint-config-next": "latest",
     "typescript": "^5.2.0",
