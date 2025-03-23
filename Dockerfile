@@ -20,7 +20,7 @@ ENV PYTHONPATH=/app
 ENV STATIC_FILES_DIR=/app/static
 
 # Expose the port the app runs on
-EXPOSE 8000
+EXPOSE 8080
 
 # Command to run the application
-CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
