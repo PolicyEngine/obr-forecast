@@ -63,7 +63,10 @@ export const GrowthRatesInput = ({
         <div 
           key={type} 
           className="card slide-in" 
-          ref={el => cardsRef.current[index] = el}
+          ref={(el) => {
+            cardsRef.current[index] = el;
+            return undefined;
+          }}
           style={{ 
             animationDelay: `${index * 100}ms`
           }}
