@@ -7,7 +7,7 @@ api:
 	cd api && uvicorn main:app --reload --port 8000
 
 frontend:
-	cd frontend && npm run dev
+	cd frontend && NEXT_PUBLIC_NEXT_DEV=true npm run dev
 
 # Installation commands
 install: install-api install-frontend

@@ -14,11 +14,14 @@ const nextConfig = {
       return [
         {
           source: '/api/:path*',
-          destination: `${apiUrl}/:path*`,
+          destination: `${apiUrl}/api/:path*`,
         },
       ];
     }
-  })
+  }),
+  env: {
+    NEXT_PUBLIC_NEXT_DEV: process.env.NEXT_PUBLIC_NEXT_DEV || 'false',
+  },
 };
 
 module.exports = nextConfig;
