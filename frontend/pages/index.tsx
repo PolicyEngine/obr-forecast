@@ -25,6 +25,8 @@ interface DecileYearlyChange {
   change: number;
 }
 
+
+
 interface ForecastResponse {
   median_income_by_year: YearlyMetric[];
   poverty_rate_by_year: YearlyMetric[];
@@ -92,11 +94,10 @@ const Home: NextPage = () => {
     
     try {
       // Use environment-aware API URL
-      const response = await axios.post<ForecastResponse>('/api/forecasts/impact', {
+      const response = await axios.post<ForecastResponse>(
+        '/api/forecasts/impact', {
         forecast_id: forecastType === 'actual' ? selectedForecast : 'custom',
         growth_rates: forecastType === 'custom' ? customGrowthRates : undefined,
-      }, {
-        timeout: 300000, // 5 minutes timeout
       });
 
       setForecastResults(response.data);
