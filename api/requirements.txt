@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-policyengine-uk
+policyengine-uk==2.22.2
 policyengine==0.1.2
 python-dotenv
 starlette
