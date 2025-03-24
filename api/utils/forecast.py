@@ -45,7 +45,7 @@ def get_cumulative_growth(base_year: int, target_year: int, growth_rates: dict) 
     return cumulative_growth
 
 # Store for running computations
-computation_store: Dict[str, Dict[str, Any]] = {}
+computation_store: Dict[str, Dict[str, Any]] = {} 
 
 def get_computation_status(computation_id: str) -> Optional[Dict[str, Any]]:
     """Get the status of a running computation"""
