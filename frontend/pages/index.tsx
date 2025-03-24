@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -27,7 +27,7 @@ interface DecileYearlyChange {
 
 
 
-interface ForecastResponse {
+interface ForecastData {
   median_income_by_year: YearlyMetric[];
   poverty_rate_by_year: YearlyMetric[];
   decile_yearly_changes: DecileYearlyChange[];
@@ -35,6 +35,13 @@ interface ForecastResponse {
     forecast_id: string;
     growth_rates: GrowthRates;
   };
+}
+
+interface ComputationResponse {
+  computation_id: string;
+  status: 'computing' | 'completed' | 'failed';
+  result?: ForecastData;
+  error?: string;
 }
 
 const Home: NextPage = () => {
@@ -49,8 +56,13 @@ const Home: NextPage = () => {
   });
   const [customGrowthRates, setCustomGrowthRates] = useState<GrowthRates | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [forecastResults, setForecastResults] = useState<ForecastResponse | null>(null);
+  const [isComputing, setIsComputing] = useState<boolean>(false);
+  const [computationId, setComputationId] = useState<string | null>(null);
+  const [forecastResults, setForecastResults] = useState<ForecastData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // For polling
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch available forecasts and default growth rates
   useEffect(() => {
@@ -84,6 +96,86 @@ const Home: NextPage = () => {
     setCustomGrowthRates(growthRates);
   };
 
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+      }
+    };
+  }, []);
+
+  // Set up polling when computationId changes
+  useEffect(() => {
+    // Only set up polling if we have a computation ID and are in computing state
+    if (computationId && isComputing) {
+      // Do an immediate check
+      pollComputationStatus();
+      
+      // Set up the polling interval - check every 10 seconds
+      pollingInterval.current = setInterval(pollComputationStatus, 10000);
+      
+      // Clean up function to clear interval if component unmounts or dependencies change
+      return () => {
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+          pollingInterval.current = null;
+        }
+      };
+    }
+  }, [computationId, isComputing]); // Re-run when computationId or isComputing changes
+  
+  // Polling function to check computation status
+  const pollComputationStatus = async () => {
+    if (!computationId) return;
+    
+    try {
+      const response = await axios.post<ComputationResponse>(
+        '/api/forecasts/impact', {
+        forecast_id: `computation_id:${computationId}`,
+        growth_rates: forecastType === 'custom' ? customGrowthRates : undefined,
+      });
+      
+      const { status, result, error: computationError } = response.data;
+      
+      if (status === 'completed' && result) {
+        // Computation is complete, set the results
+        setForecastResults(result);
+        setIsComputing(false);
+        setIsLoading(false);
+        
+        // Clear the polling interval
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+          pollingInterval.current = null;
+        }
+      } else if (status === 'failed') {
+        // Computation failed
+        setError(computationError || 'Computation failed unexpectedly');
+        setIsComputing(false);
+        setIsLoading(false);
+        
+        // Clear the polling interval
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+          pollingInterval.current = null;
+        }
+      }
+      // If status is still 'computing', continue polling
+    } catch (error) {
+      console.error('Error polling computation status:', error);
+      setError('Failed to check computation status. Please try again.');
+      setIsComputing(false);
+      setIsLoading(false);
+      
+      // Clear the polling interval
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+        pollingInterval.current = null;
+      }
+    }
+  };
+  
   const handleAnalyze = async () => {
     // Don't proceed if no forecast is selected
     if (forecastType === 'actual' && !selectedForecast) return;
@@ -91,21 +183,44 @@ const Home: NextPage = () => {
     setIsLoading(true);
     // Reset previous errors and results
     setError(null);
+    setForecastResults(null);
+    setIsComputing(false);
+    setComputationId(null);
+    
+    // Clean up any existing polling
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
     
     try {
-      // Use environment-aware API URL
-      const response = await axios.post<ForecastResponse>(
+      // Start a new computation
+      const response = await axios.post<ComputationResponse>(
         '/api/forecasts/impact', {
         forecast_id: forecastType === 'actual' ? selectedForecast : 'custom',
         growth_rates: forecastType === 'custom' ? customGrowthRates : undefined,
       });
 
-      setForecastResults(response.data);
+      const { status, computation_id, result, error: computationError } = response.data;
+      
+      if (status === 'computing') {
+        // Long-running computation started
+        setComputationId(computation_id);
+        setIsComputing(true);
+        // The useEffect will set up polling
+      } else if (status === 'completed' && result) {
+        // Computation completed immediately (possibly from cache)
+        setForecastResults(result);
+        setIsLoading(false);
+      } else if (status === 'failed') {
+        // Computation failed
+        setError(computationError || 'Computation failed unexpectedly');
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error('Error analyzing forecast:', error);
       setError('Failed to analyze forecast. The server may be experiencing high load or maintenance.');
       setForecastResults(null);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -175,13 +290,15 @@ const Home: NextPage = () => {
               />
             )}
             
-            {isLoading && (
+            {(isLoading || isComputing) && (
               <div className="card flex items-center justify-center slide-in" style={{ minHeight: '300px' }}>
                 <div className="text-center">
                   <div className="spinner" style={{ margin: '0 auto 1.5rem', width: '3rem', height: '3rem' }}></div>
-                  <p style={{ fontFamily: 'Roboto, sans-serif', marginBottom: '0.5rem' }}>Running simulation with PolicyEngine...</p>
+                  <p style={{ fontFamily: 'Roboto, sans-serif', marginBottom: '0.5rem' }}>
+                    {isComputing ? 'Computation in progress...' : 'Starting simulation with PolicyEngine...'}
+                  </p>
                   <p className="text-muted" style={{ fontSize: '0.875rem' }}>
-                    This may take a minute or two to complete
+                    {isComputing ? 'Checking status every 10 seconds' : 'This may take a minute or two to complete'}
                   </p>
                 </div>
               </div>
@@ -201,19 +318,19 @@ const Home: NextPage = () => {
               </div>
             )}
             
-            {!isLoading && !error && forecastResults && (
+            {!isLoading && !isComputing && !error && forecastResults && (
               <div className="space-y-6 fade-in" style={{ animationDelay: '300ms' }}>
                 {/* Show the ForecastResults first with summary */}
                 <ForecastResults
                   medianIncomeByYear={forecastResults.median_income_by_year}
                   povertyRateByYear={forecastResults.poverty_rate_by_year}
-                  isLoading={isLoading}
+                  isLoading={isLoading || isComputing}
                 />
                 
                 {/* Then show the decile yearly change chart */}
                 <DecileYearlyChangeChart
                   decileYearlyChanges={forecastResults.decile_yearly_changes}
-                  isLoading={isLoading}
+                  isLoading={isLoading || isComputing}
                 />
               </div>
             )}

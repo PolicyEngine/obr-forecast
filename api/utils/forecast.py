@@ -6,6 +6,12 @@ import json
 import pandas as pd
 import numpy as np
 from microdf import MicroDataFrame
+import threading
+import uuid
+import hashlib
+import time
+from typing import Dict, Any, Optional
+from api.utils.cache import cache_store
 
 START_YEAR = 2026
 COUNT_YEARS = 5
@@ -37,6 +43,13 @@ def get_cumulative_growth(base_year: int, target_year: int, growth_rates: dict) 
     for year in range(base_year + 1, target_year + 1):
         cumulative_growth *= (1 + growth_rates[year])
     return cumulative_growth
+
+# Store for running computations
+computation_store: Dict[str, Dict[str, Any]] = {}
+
+def get_computation_status(computation_id: str) -> Optional[Dict[str, Any]]:
+    """Get the status of a running computation"""
+    return computation_store.get(computation_id)
 
 def get_dataframe(
     growfactors: dict,
@@ -106,4 +119,119 @@ def get_dataframe(
         ])
     
     return MicroDataFrame(df, weights="household_weight")
+
+def get_cache_key_for_computation(growth_rates):
+    """Generate a cache key for the computation based on growth rates"""
+    # Convert growth rates to a stable string format for hashing
+    growth_rates_str = json.dumps(growth_rates, sort_keys=True)
+    key = f"forecast_impact:{growth_rates_str}"
+    return hashlib.md5(key.encode()).hexdigest()
+
+def start_computation(growth_rates):
+    """Start a computation in a background thread and return a computation ID"""
+    # Check if we already have a cached result
+    cache_key = get_cache_key_for_computation(growth_rates)
+    if cache_key in cache_store:
+        entry = cache_store[cache_key]
+        # Check if it's not expired
+        if entry["expires"] > time.time():
+            # Create a computation ID for this cached result
+            computation_id = str(uuid.uuid4())
+            computation_store[computation_id] = {
+                "status": "completed",
+                "result": entry["data"],
+                "cached": True
+            }
+            return computation_id
+    
+    # Create a new computation ID
+    computation_id = str(uuid.uuid4())
+    
+    def run_computation():
+        try:
+            # Get the dataframe with simulation results
+            df = get_dataframe(growth_rates)
+            
+            # Calculate median income by year
+            median_income_by_year = []
+            poverty_rate_by_year = []
+            decile_yearly_changes = []
+            
+            # Include 2025 as baseline
+            for year in range(2025, START_YEAR + len(FORECAST_YEARS)):
+                # Calculate median income
+                year_df = df[df.year == year]
+                median_income = year_df.real_household_net_income.median()
+                
+                median_income_by_year.append({
+                    "year": int(year),
+                    "value": float(median_income)
+                })
+                
+                # Calculate poverty rate
+                in_poverty_count = year_df[year_df.in_poverty].household_weight.values.sum()
+                total_count = year_df.household_weight.values.sum()
+                poverty_rate = float(in_poverty_count / total_count)
+                
+                poverty_rate_by_year.append({
+                    "year": int(year),
+                    "value": poverty_rate
+                })
+                
+                # Calculate YoY percent changes if we have previous year data
+                if year > 2025:
+                    year_df = df[df.year == year]
+                    last_year_df = df[df.year == year - 1]
+                    year_df["last_year_income_decile"] = last_year_df.household_income_decile.values
+                    for decile in range(1, 11):
+                        previous_income = last_year_df[last_year_df.household_income_decile == decile].real_household_net_income.sum()
+                        current_income = year_df[year_df.last_year_income_decile == decile].real_household_net_income.sum()
+                        percent_change = (current_income - previous_income) / previous_income
+                        
+                        decile_yearly_changes.append({
+                            "decile": decile,
+                            "year": int(year),
+                            "change": float(percent_change)
+                        })
+            
+            result = {
+                "median_income_by_year": median_income_by_year,
+                "poverty_rate_by_year": poverty_rate_by_year,
+                "decile_yearly_changes": decile_yearly_changes,
+            }
+            
+            # Store the completed result in the computation store
+            computation_store[computation_id] = {
+                "status": "completed",
+                "result": result,
+                "cached": False
+            }
+            
+            # Also store in the cache for future requests (30 minute TTL)
+            cache_store[cache_key] = {
+                "data": result,
+                "expires": time.time() + 1800  # 30 minutes cache
+            }
+            
+        except Exception as e:
+            # Store the error
+            computation_store[computation_id] = {
+                "status": "failed",
+                "error": str(e),
+                "cached": False
+            }
+    
+    # Store the initial status
+    computation_store[computation_id] = {
+        "status": "computing",
+        "result": None,
+        "cached": False
+    }
+    
+    # Start the computation in a background thread
+    thread = threading.Thread(target=run_computation)
+    thread.daemon = True  # Daemonize thread to avoid blocking the exit
+    thread.start()
+    
+    return computation_id
 

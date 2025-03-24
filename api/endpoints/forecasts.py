@@ -5,7 +5,7 @@ import copy
 import traceback
 import json
 
-from api.utils.forecast import get_dataframe, GROWFACTORS, FORECAST_YEARS, START_YEAR
+from api.utils.forecast import get_dataframe, GROWFACTORS, FORECAST_YEARS, START_YEAR, start_computation, get_computation_status
 from api.utils.cache import cached
 
 router = APIRouter(
@@ -53,11 +53,54 @@ async def get_available_forecasts():
         "default_growth_rates": GROWFACTORS,
     }
 
-@router.post("/api/forecasts/impact", response_model=ForecastResponse)
-@cached(ttl_seconds=1800)  # Cache for 30 minutes
+class ComputationStatusResponse(BaseModel):
+    computation_id: str
+    status: str
+    result: Optional[ForecastResponse] = None
+    error: Optional[str] = None
+
+@router.post("/api/forecasts/impact", response_model=ComputationStatusResponse)
+# Don't use caching for status checks, only cache completed results
 async def calculate_forecast_impact(request: ForecastRequest):
-    """Calculate the impact of a specific forecast with growth rate parameters"""
+    """Start or check the status of a forecast impact calculation"""
     try:
+        # Check if computation_id was provided (for checking status)
+        computation_id = request.forecast_id
+        if "computation_id:" in computation_id:
+            # Extract actual computation ID
+            actual_computation_id = computation_id.split("computation_id:")[1]
+            # Get the computation status
+            computation = get_computation_status(actual_computation_id)
+            
+            if not computation:
+                raise HTTPException(status_code=404, detail="Computation not found")
+            
+            if computation["status"] == "completed":
+                # Return the completed result with metadata
+                result = computation["result"]
+                result["metadata"] = {
+                    "forecast_id": request.forecast_id,
+                    "growth_rates": request.growth_rates.model_dump() if request.growth_rates else GROWFACTORS
+                }
+                return {
+                    "computation_id": actual_computation_id,
+                    "status": "completed",
+                    "result": result
+                }
+            elif computation["status"] == "failed":
+                return {
+                    "computation_id": actual_computation_id,
+                    "status": "failed",
+                    "error": computation.get("error", "Unknown error")
+                }
+            else:
+                # Still computing
+                return {
+                    "computation_id": actual_computation_id,
+                    "status": "computing"
+                }
+        
+        # Start a new computation
         # Use default growth rates if none provided
         growth_rates = GROWFACTORS
         if request.growth_rates:
@@ -68,61 +111,13 @@ async def calculate_forecast_impact(request: ForecastRequest):
                 "inflation": request.growth_rates.inflation,
             }
         
-        # Get the dataframe with simulation results
-        # Use a smaller subsample to improve API response time
-        df = get_dataframe(growth_rates)
+        # Start the computation in a background thread
+        computation_id = start_computation(growth_rates)
         
-        # Calculate median income by year
-        median_income_by_year = []
-        poverty_rate_by_year = []
-        decile_yearly_changes = []
-        
-        # Include 2025 as baseline
-        for year in range(2025, START_YEAR + len(FORECAST_YEARS)):
-            # Calculate median income
-            year_df = df[df.year == year]
-            median_income = year_df.real_household_net_income.median()
-            
-            median_income_by_year.append({
-                "year": int(year),
-                "value": float(median_income)
-            })
-            
-            # Calculate poverty rate
-            in_poverty_count = year_df[year_df.in_poverty].household_weight.values.sum()
-            total_count = year_df.household_weight.values.sum()
-            poverty_rate = float(in_poverty_count / total_count)
-            
-            poverty_rate_by_year.append({
-                "year": int(year),
-                "value": poverty_rate
-            })
-            
-            
-            # Calculate YoY percent changes if we have previous year data
-            if year > 2025:
-                year_df = df[df.year == year]
-                last_year_df = df[df.year == year - 1]
-                year_df["last_year_income_decile"] = last_year_df.household_income_decile.values
-                for decile in range(1, 11):
-                    previous_income = last_year_df[last_year_df.household_income_decile == decile].real_household_net_income.sum()
-                    current_income = year_df[year_df.last_year_income_decile == decile].real_household_net_income.sum()
-                    percent_change = (current_income - previous_income) / previous_income
-                    
-                    decile_yearly_changes.append({
-                        "decile": decile,
-                        "year": int(year),
-                        "change": float(percent_change)
-                    })
-        
+        # Return the computation ID
         return {
-            "median_income_by_year": median_income_by_year,
-            "poverty_rate_by_year": poverty_rate_by_year,
-            "decile_yearly_changes": decile_yearly_changes,
-            "metadata": {
-                "forecast_id": request.forecast_id,
-                "growth_rates": growth_rates
-            }
+            "computation_id": computation_id,
+            "status": "computing"
         }
     except Exception as e:
         traceback.print_exc()
