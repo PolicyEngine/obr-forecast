@@ -35,7 +35,6 @@ for year in FORECAST_YEARS:
     GROWFACTORS["mixed_income"][year] = round(obr.mixed_income(year) / obr.mixed_income(year - 1), 3) - 1
     GROWFACTORS["capital_income"][year] = round(obr.non_labour_income(year) / obr.non_labour_income(year - 1), 3) - 1
     GROWFACTORS["inflation"][year] = round(obr.consumer_price_index(year) / obr.consumer_price_index(year - 1), 3) - 1
-    
 
 
 def get_cumulative_growth(base_year: int, target_year: int, growth_rates: dict) -> float:
@@ -90,6 +89,8 @@ def get_dataframe(
 
     link = f"https://policyengine.org/uk/policy?reform={api_id}"
 
+    print(link)
+
     simulation = Simulation(
         country="uk",
         scope="macro",
@@ -99,6 +100,7 @@ def get_dataframe(
     
     df = pd.DataFrame()
     for year in range(2025, START_YEAR + COUNT_YEARS):
+        print("Calculating year", year)
         year_df = simulation.calculate_dataframe([
             "household_id",
             "household_weight",
