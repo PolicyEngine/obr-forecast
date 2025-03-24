@@ -293,7 +293,6 @@ def start_computation(growth_rates):
     
     # Start the computation in a background thread
     thread = threading.Thread(target=run_computation)
-    thread.daemon = True  # Daemonize thread to avoid blocking the exit
     thread.start()
     
     return computation_id
