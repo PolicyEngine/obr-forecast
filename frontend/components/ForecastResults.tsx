@@ -17,7 +17,10 @@ interface YearlyMetric {
 
 interface ForecastResultsProps {
   medianIncomeByYear: YearlyMetric[];
-  povertyRateByYear: YearlyMetric[];
+  absolutePovertyAhcByYear: YearlyMetric[];
+  absolutePovertyBhcByYear: YearlyMetric[];
+  relativePovertyAhcByYear: YearlyMetric[];
+  relativePovertyBhcByYear: YearlyMetric[];
   isLoading: boolean;
 }
 
@@ -35,13 +38,19 @@ const formatPercentage = (value: number) => {
 
 export const ForecastResults = ({
   medianIncomeByYear,
-  povertyRateByYear,
+  absolutePovertyAhcByYear,
+  absolutePovertyBhcByYear,
+  relativePovertyAhcByYear,
+  relativePovertyBhcByYear,
   isLoading,
 }: ForecastResultsProps) => {
   // Calculate baseline values (2025)
   const baselineYear = medianIncomeByYear.length > 0 ? medianIncomeByYear[0].year : 0;
   const baselineMedianIncome = medianIncomeByYear.length > 0 ? medianIncomeByYear[0].value : 0;
-  const baselinePovertyRate = povertyRateByYear.length > 0 ? povertyRateByYear[0].value : 0;
+  const baselineAbsolutePovertyAhc = absolutePovertyAhcByYear.length > 0 ? absolutePovertyAhcByYear[0].value : 0;
+  const baselineAbsolutePovertyBhc = absolutePovertyBhcByYear.length > 0 ? absolutePovertyBhcByYear[0].value : 0;
+  const baselineRelativePovertyAhc = relativePovertyAhcByYear.length > 0 ? relativePovertyAhcByYear[0].value : 0;
+  const baselineRelativePovertyBhc = relativePovertyBhcByYear.length > 0 ? relativePovertyBhcByYear[0].value : 0;
 
   // Custom Tooltip component for charts
   const CustomTooltip = ({ active, payload, label, formatter, baselineValue, baselineYear }: any) => {
@@ -114,19 +123,19 @@ export const ForecastResults = ({
   // Get last year's data for summary block
   const lastYear = medianIncomeByYear.length > 0 ? medianIncomeByYear[medianIncomeByYear.length - 1].year : 0;
   const lastYearMedianIncome = medianIncomeByYear.length > 0 ? medianIncomeByYear[medianIncomeByYear.length - 1].value : 0;
-  const lastYearPovertyRate = povertyRateByYear.length > 0 ? povertyRateByYear[povertyRateByYear.length - 1].value : 0;
+  const lastYearAbsolutePovertyAhc = absolutePovertyAhcByYear.length > 0 ? absolutePovertyAhcByYear[absolutePovertyAhcByYear.length - 1].value : 0;
   
   // Calculate changes from baseline
   const incomeChange = lastYearMedianIncome - baselineMedianIncome;
   const incomeChangePercent = ((incomeChange / baselineMedianIncome) * 100).toFixed(1);
-  const povertyChange = lastYearPovertyRate - baselinePovertyRate;
-  const povertyChangePoints = (povertyChange * 100).toFixed(1);
+  const absolutePovertyAhcChange = lastYearAbsolutePovertyAhc - baselineAbsolutePovertyAhc;
+  const absolutePovertyAhcChangePoints = (absolutePovertyAhcChange * 100).toFixed(1);
   
   // Estimate poverty headcount (assuming UK population of 67 million)
   const ukPopulation = 67000000;
-  const baselinePovertyHeadcount = Math.round(baselinePovertyRate * ukPopulation);
-  const lastYearPovertyHeadcount = Math.round(lastYearPovertyRate * ukPopulation);
-  const povertyHeadcountChange = lastYearPovertyHeadcount - baselinePovertyHeadcount;
+  const baselineAbsolutePovertyAhcHeadcount = Math.round(baselineAbsolutePovertyAhc * ukPopulation);
+  const lastYearAbsolutePovertyAhcHeadcount = Math.round(lastYearAbsolutePovertyAhc * ukPopulation);
+  const absolutePovertyAhcHeadcountChange = lastYearAbsolutePovertyAhcHeadcount - baselineAbsolutePovertyAhcHeadcount;
   
   return (
     <div className="space-y-6 fade-in" style={{ animationDelay: '300ms' }}>
@@ -146,12 +155,12 @@ export const ForecastResults = ({
             </p>
           </div>
           <div>
-            <p className="text-lg font-medium">Absolute Poverty Rate</p>
+            <p className="text-lg font-medium">Absolute Poverty Rate (AHC)</p>
             <p className="text-2xl font-bold text-red-600">
-              {formatPercentage(lastYearPovertyRate)} 
-              <span className={povertyChange <= 0 ? "text-green-600" : "text-red-600"}>
-                ({povertyChange <= 0 ? "" : "+"}{povertyChangePoints}pp / 
-                {povertyHeadcountChange <= 0 ? "" : "+"}{Math.abs(povertyHeadcountChange).toLocaleString()} people)
+              {formatPercentage(lastYearAbsolutePovertyAhc)} 
+              <span className={absolutePovertyAhcChange <= 0 ? "text-green-600" : "text-red-600"}>
+                ({absolutePovertyAhcChange <= 0 ? "" : "+"}{absolutePovertyAhcChangePoints}pp / 
+                {absolutePovertyAhcHeadcountChange <= 0 ? "" : "+"}{Math.abs(absolutePovertyAhcHeadcountChange).toLocaleString()} people)
               </span>
             </p>
           </div>
@@ -225,13 +234,14 @@ export const ForecastResults = ({
         </div>
       </div>
 
+      {/* Absolute Poverty AHC Chart */}
       <div className="card">
-        <h3 className="card-title">Poverty Rate</h3>
-        <p className="card-description">Percentage of population below the poverty line</p>
+        <h3 className="card-title">Absolute Poverty Rate (After Housing Costs)</h3>
+        <p className="card-description">Percentage of population below the absolute poverty line after housing costs</p>
         
         <div style={{ height: '350px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={povertyRateByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+            <LineChart data={absolutePovertyAhcByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
               <XAxis 
                 dataKey="year" 
@@ -250,13 +260,13 @@ export const ForecastResults = ({
                 content={
                   <CustomTooltip 
                     formatter={formatPercentage}
-                    baselineValue={baselinePovertyRate}
+                    baselineValue={baselineAbsolutePovertyAhc}
                     baselineYear={baselineYear}
                   />
                 } 
               />
               <ReferenceLine
-                y={baselinePovertyRate}
+                y={baselineAbsolutePovertyAhc}
                 stroke="var(--medium-dark-gray)"
                 strokeDasharray="3 3"
                 label={{ 
@@ -270,11 +280,212 @@ export const ForecastResults = ({
               <Line 
                 type="monotone" 
                 dataKey="value" 
-                name="Poverty Rate" 
+                name="Absolute Poverty Rate (AHC)" 
                 stroke="var(--dark-red)" 
                 strokeWidth={3}
                 dot={{ stroke: 'var(--dark-red)', strokeWidth: 2, fill: 'white', r: 4 }}
                 activeDot={{ stroke: 'var(--dark-red)', strokeWidth: 2, fill: 'var(--dark-red)', r: 6 }}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="text-muted" style={{ 
+          marginTop: '0.5rem', 
+          fontSize: '0.8rem', 
+          textAlign: 'right',
+          fontFamily: 'Roboto Serif, serif'
+        }}>
+          Data calculated using PolicyEngine
+        </div>
+      </div>
+
+      {/* Absolute Poverty BHC Chart */}
+      <div className="card">
+        <h3 className="card-title">Absolute Poverty Rate (Before Housing Costs)</h3>
+        <p className="card-description">Percentage of population below the absolute poverty line before housing costs</p>
+        
+        <div style={{ height: '350px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={absolutePovertyBhcByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
+              <XAxis 
+                dataKey="year" 
+                stroke="var(--dark-gray)" 
+                tick={{ fontFamily: 'Roboto Mono, monospace' }} 
+              />
+              <YAxis 
+                orientation="left" 
+                tickFormatter={formatPercentage} 
+                stroke="var(--dark-red)"
+                tick={{ fontFamily: 'Roboto Mono, monospace' }}
+                tickMargin={5}
+                domain={['auto', 'auto']}
+              />
+              <Tooltip 
+                content={
+                  <CustomTooltip 
+                    formatter={formatPercentage}
+                    baselineValue={baselineAbsolutePovertyBhc}
+                    baselineYear={baselineYear}
+                  />
+                } 
+              />
+              <ReferenceLine
+                y={baselineAbsolutePovertyBhc}
+                stroke="var(--medium-dark-gray)"
+                strokeDasharray="3 3"
+                label={{ 
+                  value: "Baseline (2025)", 
+                  position: "right",
+                  fill: "var(--dark-gray)",
+                  fontSize: 12,
+                  fontFamily: "Roboto, sans-serif"
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                name="Absolute Poverty Rate (BHC)" 
+                stroke="var(--orange)" 
+                strokeWidth={3}
+                dot={{ stroke: 'var(--orange)', strokeWidth: 2, fill: 'white', r: 4 }}
+                activeDot={{ stroke: 'var(--orange)', strokeWidth: 2, fill: 'var(--orange)', r: 6 }}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="text-muted" style={{ 
+          marginTop: '0.5rem', 
+          fontSize: '0.8rem', 
+          textAlign: 'right',
+          fontFamily: 'Roboto Serif, serif'
+        }}>
+          Data calculated using PolicyEngine
+        </div>
+      </div>
+
+      {/* Relative Poverty AHC Chart */}
+      <div className="card">
+        <h3 className="card-title">Relative Poverty Rate (After Housing Costs)</h3>
+        <p className="card-description">Percentage of population with income below 60% of median (after housing costs)</p>
+        
+        <div style={{ height: '350px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={relativePovertyAhcByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
+              <XAxis 
+                dataKey="year" 
+                stroke="var(--dark-gray)" 
+                tick={{ fontFamily: 'Roboto Mono, monospace' }} 
+              />
+              <YAxis 
+                orientation="left" 
+                tickFormatter={formatPercentage} 
+                stroke="var(--purple)"
+                tick={{ fontFamily: 'Roboto Mono, monospace' }}
+                tickMargin={5}
+                domain={['auto', 'auto']}
+              />
+              <Tooltip 
+                content={
+                  <CustomTooltip 
+                    formatter={formatPercentage}
+                    baselineValue={baselineRelativePovertyAhc}
+                    baselineYear={baselineYear}
+                  />
+                } 
+              />
+              <ReferenceLine
+                y={baselineRelativePovertyAhc}
+                stroke="var(--medium-dark-gray)"
+                strokeDasharray="3 3"
+                label={{ 
+                  value: "Baseline (2025)", 
+                  position: "right",
+                  fill: "var(--dark-gray)",
+                  fontSize: 12,
+                  fontFamily: "Roboto, sans-serif"
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                name="Relative Poverty Rate (AHC)" 
+                stroke="var(--purple)" 
+                strokeWidth={3}
+                dot={{ stroke: 'var(--purple)', strokeWidth: 2, fill: 'white', r: 4 }}
+                activeDot={{ stroke: 'var(--purple)', strokeWidth: 2, fill: 'var(--purple)', r: 6 }}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="text-muted" style={{ 
+          marginTop: '0.5rem', 
+          fontSize: '0.8rem', 
+          textAlign: 'right',
+          fontFamily: 'Roboto Serif, serif'
+        }}>
+          Data calculated using PolicyEngine
+        </div>
+      </div>
+
+      {/* Relative Poverty BHC Chart */}
+      <div className="card">
+        <h3 className="card-title">Relative Poverty Rate (Before Housing Costs)</h3>
+        <p className="card-description">Percentage of population with income below 60% of median (before housing costs)</p>
+        
+        <div style={{ height: '350px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={relativePovertyBhcByYear} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--light-gray)" />
+              <XAxis 
+                dataKey="year" 
+                stroke="var(--dark-gray)" 
+                tick={{ fontFamily: 'Roboto Mono, monospace' }} 
+              />
+              <YAxis 
+                orientation="left" 
+                tickFormatter={formatPercentage} 
+                stroke="var(--teal-accent)"
+                tick={{ fontFamily: 'Roboto Mono, monospace' }}
+                tickMargin={5}
+                domain={['auto', 'auto']}
+              />
+              <Tooltip 
+                content={
+                  <CustomTooltip 
+                    formatter={formatPercentage}
+                    baselineValue={baselineRelativePovertyBhc}
+                    baselineYear={baselineYear}
+                  />
+                } 
+              />
+              <ReferenceLine
+                y={baselineRelativePovertyBhc}
+                stroke="var(--medium-dark-gray)"
+                strokeDasharray="3 3"
+                label={{ 
+                  value: "Baseline (2025)", 
+                  position: "right",
+                  fill: "var(--dark-gray)",
+                  fontSize: 12,
+                  fontFamily: "Roboto, sans-serif"
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                name="Relative Poverty Rate (BHC)" 
+                stroke="var(--teal-accent)" 
+                strokeWidth={3}
+                dot={{ stroke: 'var(--teal-accent)', strokeWidth: 2, fill: 'white', r: 4 }}
+                activeDot={{ stroke: 'var(--teal-accent)', strokeWidth: 2, fill: 'var(--teal-accent)', r: 6 }}
                 animationDuration={1500}
                 animationEasing="ease-out"
               />

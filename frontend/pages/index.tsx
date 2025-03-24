@@ -29,7 +29,10 @@ interface DecileYearlyChange {
 
 interface ForecastData {
   median_income_by_year: YearlyMetric[];
-  poverty_rate_by_year: YearlyMetric[];
+  absolute_poverty_ahc_by_year: YearlyMetric[];
+  absolute_poverty_bhc_by_year: YearlyMetric[];
+  relative_poverty_ahc_by_year: YearlyMetric[];
+  relative_poverty_bhc_by_year: YearlyMetric[];
   decile_yearly_changes: DecileYearlyChange[];
   metadata: {
     forecast_id: string;
@@ -323,7 +326,10 @@ const Home: NextPage = () => {
                 {/* Show the ForecastResults first with summary */}
                 <ForecastResults
                   medianIncomeByYear={forecastResults.median_income_by_year}
-                  povertyRateByYear={forecastResults.poverty_rate_by_year}
+                  absolutePovertyAhcByYear={forecastResults.absolute_poverty_ahc_by_year}
+                  absolutePovertyBhcByYear={forecastResults.absolute_poverty_bhc_by_year}
+                  relativePovertyAhcByYear={forecastResults.relative_poverty_ahc_by_year}
+                  relativePovertyBhcByYear={forecastResults.relative_poverty_bhc_by_year}
                   isLoading={isLoading || isComputing}
                 />
                 

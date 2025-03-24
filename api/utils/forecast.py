@@ -91,11 +91,15 @@ def get_dataframe(
 
     print(link)
 
+    print("Creating simulation")
+
     simulation = Simulation(
         country="uk",
         scope="macro",
-        reform=reform,
-    ).reform_simulation
+        baseline=reform,
+    ).baseline_simulation
+
+    print("Created simulation")
 
     
     df = pd.DataFrame()
@@ -112,7 +116,10 @@ def get_dataframe(
             "self_employment_income",
             "dividend_income",
             "consumption",
-            "in_poverty",
+            "in_poverty_ahc",
+            "in_poverty_bhc",
+            "equiv_hbai_household_net_income_ahc",
+            "equiv_hbai_household_net_income",
         ], period=year).reset_index()
         year_df["year"] = year
         df = pd.concat([
@@ -170,14 +177,36 @@ def start_computation(growth_rates):
                     "value": float(median_income)
                 })
                 
-                # Calculate poverty rate
-                in_poverty_count = year_df[year_df.in_poverty].household_weight.values.sum()
-                total_count = year_df.household_weight.values.sum()
-                poverty_rate = float(in_poverty_count / total_count)
+                # Calculate absolute poverty rates (BHC and AHC)
+                total_count = year_df.household_count_people.sum()
+                
+                # Absolute poverty AHC
+                in_poverty_ahc_count = year_df[year_df.in_poverty_ahc].household_count_people.sum()
+                poverty_rate_ahc = float(in_poverty_ahc_count / total_count)
+                
+                # Absolute poverty BHC 
+                in_poverty_bhc_count = year_df[year_df.in_poverty_bhc].household_count_people.sum()
+                poverty_rate_bhc = float(in_poverty_bhc_count / total_count)
+                
+                # Calculate relative poverty rates
+                # Relative poverty AHC (60% of median)
+                median_ahc = year_df.equiv_hbai_household_net_income_ahc.median()
+                poverty_threshold_ahc = median_ahc * 0.6
+                rel_poverty_ahc_count = year_df[year_df.equiv_hbai_household_net_income_ahc < poverty_threshold_ahc].household_count_people.sum()
+                rel_poverty_rate_ahc = float(rel_poverty_ahc_count / total_count)
+                
+                # Relative poverty BHC (60% of median)
+                median_bhc = year_df.equiv_hbai_household_net_income_bhc.median()
+                poverty_threshold_bhc = median_bhc * 0.6
+                rel_poverty_bhc_count = year_df[year_df.equiv_hbai_household_net_income_bhc < poverty_threshold_bhc].household_count_people.sum()
+                rel_poverty_rate_bhc = float(rel_poverty_bhc_count / total_count)
                 
                 poverty_rate_by_year.append({
                     "year": int(year),
-                    "value": poverty_rate
+                    "absolute_ahc": poverty_rate_ahc,
+                    "absolute_bhc": poverty_rate_bhc,
+                    "relative_ahc": rel_poverty_rate_ahc,
+                    "relative_bhc": rel_poverty_rate_bhc
                 })
                 
                 # Calculate YoY percent changes if we have previous year data
@@ -196,9 +225,41 @@ def start_computation(growth_rates):
                             "change": float(percent_change)
                         })
             
+            # Transform poverty_rate_by_year into separate metrics for API compatibility
+            absolute_poverty_ahc_by_year = []
+            absolute_poverty_bhc_by_year = []
+            relative_poverty_ahc_by_year = []
+            relative_poverty_bhc_by_year = []
+            
+            for entry in poverty_rate_by_year:
+                year = entry["year"]
+                
+                absolute_poverty_ahc_by_year.append({
+                    "year": year,
+                    "value": entry["absolute_ahc"]
+                })
+                
+                absolute_poverty_bhc_by_year.append({
+                    "year": year,
+                    "value": entry["absolute_bhc"]
+                })
+                
+                relative_poverty_ahc_by_year.append({
+                    "year": year,
+                    "value": entry["relative_ahc"]
+                })
+                
+                relative_poverty_bhc_by_year.append({
+                    "year": year,
+                    "value": entry["relative_bhc"]
+                })
+            
             result = {
                 "median_income_by_year": median_income_by_year,
-                "poverty_rate_by_year": poverty_rate_by_year,
+                "absolute_poverty_ahc_by_year": absolute_poverty_ahc_by_year,
+                "absolute_poverty_bhc_by_year": absolute_poverty_bhc_by_year,
+                "relative_poverty_ahc_by_year": relative_poverty_ahc_by_year,
+                "relative_poverty_bhc_by_year": relative_poverty_bhc_by_year,
                 "decile_yearly_changes": decile_yearly_changes,
             }
             

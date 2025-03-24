@@ -37,7 +37,10 @@ class DecileYearlyChange(BaseModel):
 
 class ForecastResponse(BaseModel):
     median_income_by_year: List[YearlyMetric]
-    poverty_rate_by_year: List[YearlyMetric]
+    absolute_poverty_ahc_by_year: List[YearlyMetric]
+    absolute_poverty_bhc_by_year: List[YearlyMetric]
+    relative_poverty_ahc_by_year: List[YearlyMetric]
+    relative_poverty_bhc_by_year: List[YearlyMetric]
     decile_yearly_changes: List[DecileYearlyChange]
     metadata: Dict[str, Any]
 
