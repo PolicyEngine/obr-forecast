@@ -196,9 +196,9 @@ def start_computation(growth_rates):
                 rel_poverty_rate_ahc = float(rel_poverty_ahc_count / total_count)
                 
                 # Relative poverty BHC (60% of median)
-                median_bhc = year_df.equiv_hbai_household_net_income_bhc.median()
+                median_bhc = year_df.equiv_hbai_household_net_income.median()
                 poverty_threshold_bhc = median_bhc * 0.6
-                rel_poverty_bhc_count = year_df[year_df.equiv_hbai_household_net_income_bhc < poverty_threshold_bhc].household_count_people.sum()
+                rel_poverty_bhc_count = year_df[year_df.equiv_hbai_household_net_income < poverty_threshold_bhc].household_count_people.sum()
                 rel_poverty_rate_bhc = float(rel_poverty_bhc_count / total_count)
                 
                 poverty_rate_by_year.append({
