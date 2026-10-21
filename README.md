@@ -55,12 +55,10 @@ pip install -r tests/requirements.txt
 make test
 ```
 
-`tests/requirements.txt` installs `policyengine-core==3.16.3`, because the
-pinned `policyengine-uk==2.22.2` does not load with current `policyengine-core`
-releases. `api/requirements.txt` itself can no longer be installed as a
-working set: `policyengine==0.1.2` depends on `policyengine-us`, and every
-`policyengine-us` release still on PyPI needs a newer `policyengine-core`
-than that version of `policyengine-uk` loads with.
+`tests/requirements.txt` pins `policyengine-core==3.16.3`, because the pinned
+`policyengine-uk==2.22.2` does not load with current `policyengine-core`
+releases. `api/requirements.txt` does not pin `policyengine-core`, so installing
+it on its own now gives a release that `policyengine-uk==2.22.2` cannot load.
 
 ## Docker Deployment
 
