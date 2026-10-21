@@ -1,6 +1,5 @@
 from policyengine import Simulation
 from policyengine_core.taxbenefitsystems.tax_benefit_system import *
-from policyengine_core.reforms import Reform
 from policyengine_uk.system import system
 import json
 import pandas as pd
@@ -65,31 +64,19 @@ def get_dataframe(
     reform["gov.obr.non_labour_income"] = {}
     inflation_index = obr.consumer_price_index(START_YEAR - 1)
     reform["gov.obr.consumer_price_index"] = {}
-    legacy_reform = json.loads(json.dumps(reform))
     for year in FORECAST_YEARS:
         time_period = f"{year}-01-01.{year}-12-31"
-        legacy_time_period = f"year:{year}:1"
         employment_income_index *= 1 + growfactors["earned_income"][year]
         reform["gov.obr.employment_income"][time_period] = float(employment_income_index)
-        legacy_reform["gov.obr.employment_income"][legacy_time_period] = float(employment_income_index)
 
         mixed_income_index *= 1 + growfactors["mixed_income"][year]
         reform["gov.obr.mixed_income"][time_period] = float(mixed_income_index)
-        legacy_reform["gov.obr.mixed_income"][legacy_time_period] = float(mixed_income_index)
 
         non_labour_income *= 1 + growfactors["capital_income"][year]
         reform["gov.obr.non_labour_income"][time_period] = float(non_labour_income)
-        legacy_reform["gov.obr.non_labour_income"][legacy_time_period] = float(non_labour_income)
 
         inflation_index *= 1 + growfactors["inflation"][year]
         reform["gov.obr.consumer_price_index"][time_period] = float(inflation_index)
-        legacy_reform["gov.obr.consumer_price_index"][legacy_time_period] = float(inflation_index)
-
-    api_id = Reform.from_dict(legacy_reform, country_id="uk").api_id
-
-    link = f"https://policyengine.org/uk/policy?reform={api_id}"
-
-    print(link)
 
     print("Creating simulation")
 
