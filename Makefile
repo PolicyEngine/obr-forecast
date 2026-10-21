@@ -1,4 +1,4 @@
-.PHONY: dev api frontend install build
+.PHONY: dev api frontend install build test
 
 # Development commands
 dev: api frontend
@@ -17,6 +17,10 @@ install-api:
 
 install-frontend:
 	cd frontend && npm install
+
+# Test commands
+test:
+	python -m pytest
 
 # Build commands
 build:

@@ -44,6 +44,20 @@ make api
 make frontend
 ```
 
+## Tests
+
+The tests in `tests/` replace the microsimulation with a stand-in, so they need
+no data download. Run them from the repository root:
+
+```bash
+pip install -r api/requirements.txt pytest "policyengine-core==3.16.3"
+make test
+```
+
+The pinned `policyengine-uk==2.22.2` does not load with current
+`policyengine-core` releases, so the command installs 3.16.3, the release that
+was current when that version of `policyengine-uk` was published.
+
 ## Docker Deployment
 
 The simplest way to run the complete application is with Docker:
