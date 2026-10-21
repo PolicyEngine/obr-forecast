@@ -1,0 +1,10 @@
+# The tests replace the policyengine package's simulation with a stand-in, so
+# they need the UK model but not policyengine itself. policyengine-uk 2.22.2
+# (pinned in api/requirements.txt) does not load with current
+# policyengine-core releases; 3.16.3 was current when it was published.
+policyengine-uk==2.22.2
+policyengine-core==3.16.3
+microdf_python
+fastapi
+pydantic
+pytest
